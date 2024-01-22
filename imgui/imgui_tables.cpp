@@ -77,14 +77,14 @@ Index of this file:
 // About 'outer_size':
 // Its meaning needs to differ slightly depending on if we are using ScrollX/ScrollY flags.
 // Default value is ImVec2(0.0f, 0.0f).
-//   X
+//   x
 //   - outer_size.x <= 0.0f  ->  Right-align from window/work-rect right-most edge. With -FLT_MIN or 0.0f will align exactly on right-most edge.
 //   - outer_size.x  > 0.0f  ->  Set Fixed width.
-//   Y with ScrollX/ScrollY disabled: we output table directly in current window
+//   y with ScrollX/ScrollY disabled: we output table directly in current window
 //   - outer_size.y  < 0.0f  ->  Bottom-align (but will auto extend, unless _NoHostExtendY is set). Not meaningful if parent window can vertically scroll.
 //   - outer_size.y  = 0.0f  ->  No minimum height (but will auto extend, unless _NoHostExtendY is set)
 //   - outer_size.y  > 0.0f  ->  Set Minimum height (but will auto extend, unless _NoHostExtendY is set)
-//   Y with ScrollX/ScrollY enabled: using a child window for scrolling
+//   y with ScrollX/ScrollY enabled: using a child window for scrolling
 //   - outer_size.y  < 0.0f  ->  Bottom-align. Not meaningful if parent window can vertically scroll.
 //   - outer_size.y  = 0.0f  ->  Bottom-align, consistent with BeginChild(). Not recommended unless table is last item in parent window.
 //   - outer_size.y  > 0.0f  ->  Set Exact height. Recommended when using Scrolling on any axis.
@@ -1076,12 +1076,12 @@ void ImGui::TableUpdateLayout(ImGuiTable* table)
         column->ClipRect.ClipWithFull(host_clip_rect);
 
         // Mark column as Clipped (not in sight)
-        // Note that scrolling tables (where inner_window != outer_window) handle Y clipped earlier in BeginTable() so IsVisibleY really only applies to non-scrolling tables.
+        // Note that scrolling tables (where inner_window != outer_window) handle y clipped earlier in BeginTable() so IsVisibleY really only applies to non-scrolling tables.
         // FIXME-TABLE: Because InnerClipRect.Max.y is conservatively ==outer_window->ClipRect.Max.y, we never can mark columns _Above_ the scroll line as not IsVisibleY.
         // Taking advantage of LastOuterHeight would yield good results there...
-        // FIXME-TABLE: Y clipping is disabled because it effectively means not submitting will reduce contents width which is fed to outer_window->DC.CursorMaxPos.x,
+        // FIXME-TABLE: y clipping is disabled because it effectively means not submitting will reduce contents width which is fed to outer_window->DC.CursorMaxPos.x,
         // and this may be used (e.g. typically by outer_window using AlwaysAutoResize or outer_window's horizontal scrollbar, but could be something else).
-        // Possible solution to preserve last known content width for clipped column. Test 'table_reported_size' fails when enabling Y clipping and window is resized small.
+        // Possible solution to preserve last known content width for clipped column. Test 'table_reported_size' fails when enabling y clipping and window is resized small.
         column->IsVisibleX = (column->ClipRect.Max.x > column->ClipRect.Min.x);
         column->IsVisibleY = true; // (column->ClipRect.Max.y > column->ClipRect.Min.y);
         const bool is_visible = column->IsVisibleX; //&& column->IsVisibleY;
@@ -3849,7 +3849,7 @@ void ImGui::DebugNodeTable(ImGuiTable* table)
         char buf[512];
         ImFormatString(buf, IM_ARRAYSIZE(buf),
             "Column %d order %d '%s': offset %+.2f to %+.2f%s\n"
-            "Enabled: %d, VisibleX/Y: %d/%d, RequestOutput: %d, SkipItems: %d, DrawChannels: %d,%d\n"
+            "Enabled: %d, VisibleX/y: %d/%d, RequestOutput: %d, SkipItems: %d, DrawChannels: %d,%d\n"
             "WidthGiven: %.1f, Request/Auto: %.1f/%.1f, StretchWeight: %.3f (%.1f%%)\n"
             "MinX: %.1f, MaxX: %.1f (%+.1f), ClipRect: %.1f to %.1f (+%.1f)\n"
             "ContentWidth: %.1f,%.1f, HeadersUsed/Ideal %.1f/%.1f\n"
@@ -4279,7 +4279,7 @@ void ImGui::EndColumns()
     bool is_being_resized = false;
     if (!(flags & ImGuiOldColumnFlags_NoBorder) && !window->SkipItems)
     {
-        // We clip Y boundaries CPU side because very long triangles are mishandled by some GPU drivers.
+        // We clip y boundaries CPU side because very long triangles are mishandled by some GPU drivers.
         const float y1 = ImMax(columns->HostCursorPosY, window->ClipRect.Min.y);
         const float y2 = ImMin(window->DC.CursorPos.y, window->ClipRect.Max.y);
         int dragging_column = -1;

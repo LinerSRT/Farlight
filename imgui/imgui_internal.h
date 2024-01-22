@@ -740,7 +740,7 @@ struct ImGuiTextIndex
 // number of segments (N) is calculated using equation:
 //   N = ceil ( pi / acos(1 - error / r) )     where r > 0, error <= r
 // Our equation is significantly simpler that one in the post thanks for choosing segment that is
-// perpendicular to X axis. Follow steps in the article from this starting condition and you will
+// perpendicular to x axis. Follow steps in the article from this starting condition and you will
 // will getValue this result.
 //
 // Rendering circles with an odd number of segments, while mathematically correct will produce
@@ -971,7 +971,7 @@ enum ImGuiLogType
     ImGuiLogType_Clipboard,
 };
 
-// X/Y enums are fixed to 0/1 so they may be used to index ImVec2
+// x/y enums are fixed to 0/1 so they may be used to index ImVec2
 enum ImGuiAxis
 {
     ImGuiAxis_None = -1,
@@ -1505,12 +1505,12 @@ enum ImGuiActivateFlags_
 enum ImGuiScrollFlags_
 {
     ImGuiScrollFlags_None                   = 0,
-    ImGuiScrollFlags_KeepVisibleEdgeX       = 1 << 0,       // If item is not visible: scroll as little as possible on X axis to bring item back into view [default for X axis]
-    ImGuiScrollFlags_KeepVisibleEdgeY       = 1 << 1,       // If item is not visible: scroll as little as possible on Y axis to bring item back into view [default for Y axis for windows that are already visible]
-    ImGuiScrollFlags_KeepVisibleCenterX     = 1 << 2,       // If item is not visible: scroll to make the item centered on X axis [rarely used]
-    ImGuiScrollFlags_KeepVisibleCenterY     = 1 << 3,       // If item is not visible: scroll to make the item centered on Y axis
-    ImGuiScrollFlags_AlwaysCenterX          = 1 << 4,       // Always center the result item on X axis [rarely used]
-    ImGuiScrollFlags_AlwaysCenterY          = 1 << 5,       // Always center the result item on Y axis [default for Y axis for appearing window)
+    ImGuiScrollFlags_KeepVisibleEdgeX       = 1 << 0,       // If item is not visible: scroll as little as possible on x axis to bring item back into view [default for x axis]
+    ImGuiScrollFlags_KeepVisibleEdgeY       = 1 << 1,       // If item is not visible: scroll as little as possible on y axis to bring item back into view [default for y axis for windows that are already visible]
+    ImGuiScrollFlags_KeepVisibleCenterX     = 1 << 2,       // If item is not visible: scroll to make the item centered on x axis [rarely used]
+    ImGuiScrollFlags_KeepVisibleCenterY     = 1 << 3,       // If item is not visible: scroll to make the item centered on y axis
+    ImGuiScrollFlags_AlwaysCenterX          = 1 << 4,       // Always center the result item on x axis [rarely used]
+    ImGuiScrollFlags_AlwaysCenterY          = 1 << 5,       // Always center the result item on y axis [default for y axis for appearing window)
     ImGuiScrollFlags_NoScrollParent         = 1 << 6,       // Disable forwarding scrolling to parent window if required to keep item/rect visible (only scroll window the function was applied to).
     ImGuiScrollFlags_MaskX_                 = ImGuiScrollFlags_KeepVisibleEdgeX | ImGuiScrollFlags_KeepVisibleCenterX | ImGuiScrollFlags_AlwaysCenterX,
     ImGuiScrollFlags_MaskY_                 = ImGuiScrollFlags_KeepVisibleEdgeY | ImGuiScrollFlags_KeepVisibleCenterY | ImGuiScrollFlags_AlwaysCenterY,
@@ -2532,7 +2532,7 @@ struct IMGUI_API ImGuiWindow
     ImGuiWindow*            NavLastChildNavWindow;              // When going to the menu bar, we remember the child window we came from. (This could probably be made implicit if we kept g.Windows sorted by last focused including child window.)
     ImGuiID                 NavLastIds[ImGuiNavLayer_COUNT];    // Last known NavId for this window, per layer (0/1)
     ImRect                  NavRectRel[ImGuiNavLayer_COUNT];    // Reference rectangle, in window relative space
-    ImVec2                  NavPreferredScoringPosRel[ImGuiNavLayer_COUNT]; // Preferred X/Y position updated when moving on a given axis, reset to FLT_MAX.
+    ImVec2                  NavPreferredScoringPosRel[ImGuiNavLayer_COUNT]; // Preferred x/y position updated when moving on a given axis, reset to FLT_MAX.
     ImGuiID                 NavRootFocusScopeId;                // Focus Scope ID at the time of Begin()
 
     int                     MemoryDrawListIdxCapacity;          // Backup of last idx/vtx count, so when waking up the window we can preallocate and avoid iterative alloc/copy

@@ -123,7 +123,7 @@ CODE
  - MOUSE CONTROLS
    - Mouse wheel:                   Scroll vertically.
    - SHIFT+Mouse wheel:             Scroll horizontally.
-   - Click [X]:                     Close a window, available when 'bool* p_open' is passed to ImGui::Begin().
+   - Click [x]:                     Close a window, available when 'bool* p_open' is passed to ImGui::Begin().
    - Click ^, Double-Click title:   Collapse window.
    - Drag on corner/border:         Resize window (double-click to auto fit window to its contents).
    - Drag on any empty space:       Move window (unless io.ConfigWindowsMoveFromTitleBarOnly = true).
@@ -134,8 +134,8 @@ CODE
    - CTRL+Left/Right:               Word jump.
    - CTRL+Shift+Left/Right:         Select words.
    - CTRL+A or Double-Click:        Select All.
-   - CTRL+X, CTRL+C, CTRL+V:        Use OS clipboard.
-   - CTRL+Z, CTRL+Y:                Undo, Redo.
+   - CTRL+x, CTRL+C, CTRL+V:        Use OS clipboard.
+   - CTRL+z, CTRL+y:                Undo, Redo.
    - ESCAPE:                        Revert text to its original value.
    - On OSX, controls are automatically adjusted to match standard OSX text editing shortcuts and behaviors.
 
@@ -601,7 +601,7 @@ CODE
                         - ImGuiStyleVar_Count_                -> use ImGuiStyleVar_COUNT
                         - ImGuiMouseCursor_Count_             -> use ImGuiMouseCursor_COUNT
                       - removed redirecting functions names that were marked obsolete in 1.61 (May 2018):
-                        - InputFloat (... int decimal_precision ...) -> use InputFloat (... const char* format ...) with format = "%.Xf" where X is your value for decimal_precision.
+                        - InputFloat (... int decimal_precision ...) -> use InputFloat (... const char* format ...) with format = "%.Xf" where x is your value for decimal_precision.
                         - same for InputFloat2()/InputFloat3()/InputFloat4() variants taking a `int decimal_precision` parameter.
  - 2020/10/05 (1.79) - removed ImGuiListClipper: Renamed constructor parameters which created an ambiguous alternative to using the ImGuiListClipper::Begin() function, with misleading edge cases (note: imgui_memory_editor <0.40 from imgui_club/ used this old clipper API. Update your copy if needed).
  - 2020/09/25 (1.79) - renamed ImGuiSliderFlags_ClampOnInput to ImGuiSliderFlags_AlwaysClamp. Kept redirection enum (will obsolete sooner because previous name was added recently).
@@ -1033,7 +1033,7 @@ CODE
 #pragma GCC diagnostic ignored "-Wdouble-promotion"         // warning: implicit conversion from 'float' to 'double' when passing argument to function
 #pragma GCC diagnostic ignored "-Wconversion"               // warning: conversion to 'xxxx' from 'xxxx' may alter its value
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"        // warning: format not a string literal, format string not checked
-#pragma GCC diagnostic ignored "-Wstrict-overflow"          // warning: assuming signed overflow does not occur when assuming that (X - c) > X is always false
+#pragma GCC diagnostic ignored "-Wstrict-overflow"          // warning: assuming signed overflow does not occur when assuming that (x - c) > x is always false
 #pragma GCC diagnostic ignored "-Wclass-memaccess"          // [__GNUC__ >= 8] warning: 'memset/memcpy' clearing/writing an object of type 'xxxx' with no trivial copy-assignment; use assignment or value-initialization instead
 #endif
 
@@ -1296,7 +1296,7 @@ ImGuiIO::ImGuiIO()
     // Miscellaneous options
     MouseDrawCursor = false;
 #ifdef __APPLE__
-    ConfigMacOSXBehaviors = true;  // Set Mac OS X style defaults based on __APPLE__ compile time flag
+    ConfigMacOSXBehaviors = true;  // Set Mac OS x style defaults based on __APPLE__ compile time flag
 #else
     ConfigMacOSXBehaviors = false;
 #endif
@@ -1588,7 +1588,7 @@ void ImGuiIO::AddMouseButtonEvent(int mouse_button, bool down)
     g.InputEventsQueue.push_back(e);
 }
 
-// Queue a mouse wheel event (some mouse/API may only have a Y component)
+// Queue a mouse wheel event (some mouse/API may only have a y component)
 void ImGuiIO::AddMouseWheelEvent(float wheel_x, float wheel_y)
 {
     IM_ASSERT(Ctx != NULL);
@@ -2765,7 +2765,7 @@ static void ImGuiListClipper_SeekCursorAndSetupPrevLine(float pos_y, float line_
     window->DC.CursorPosPrevLine.y = window->DC.CursorPos.y - line_height;  // Setting those fields so that SetScrollHereY() can properly function after the end of our clipper usage.
     window->DC.PrevLineSize.y = (line_height - g.Style.ItemSpacing.y);      // If we end up needing more accurate data (to e.g. use SameLine) we may as well make the clipper have a fourth step to let user process and display the last item in their list.
     if (ImGuiOldColumns* columns = window->DC.CurrentColumns)
-        columns->LineMinY = window->DC.CursorPos.y;                         // Setting this so that cell Y position are set properly
+        columns->LineMinY = window->DC.CursorPos.y;                         // Setting this so that cell y position are set properly
     if (ImGuiTable* table = g.CurrentTable)
     {
         if (table->IsInsideRow)
@@ -2973,7 +2973,7 @@ static bool ImGuiListClipper_StepInternal(ImGuiListClipper* clipper)
         return true;
     }
 
-    // After the last step: Let the clipper validate that we have reached the expected Y position (corresponding to element DisplayEnd),
+    // After the last step: Let the clipper validate that we have reached the expected y position (corresponding to element DisplayEnd),
     // Advance the cursor to the end of the list and then returns 'false' to end the loop.
     if (clipper->ItemsCount < INT_MAX)
         ImGuiListClipper_SeekCursorForItem(clipper, clipper->ItemsCount);
@@ -6462,7 +6462,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
     }
 
     // Process SetNextWindow***() calls
-    // (FIXME: Consider splitting the HasXXX flags into X/Y components
+    // (FIXME: Consider splitting the HasXXX flags into x/y components
     bool window_pos_set_by_api = false;
     bool window_size_x_set_by_api = false, window_size_y_set_by_api = false;
     if (g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasPos)
@@ -8111,7 +8111,7 @@ static const char* const GKeyNames[] =
     "Home", "End", "Insert", "Delete", "Backspace", "Space", "Enter", "Escape",
     "LeftCtrl", "LeftShift", "LeftAlt", "LeftSuper", "RightCtrl", "RightShift", "RightAlt", "RightSuper", "Menu",
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H",
-    "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+    "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "x", "y", "z",
     "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
     "F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20", "F21", "F22", "F23", "F24",
     "Apostrophe", "Comma", "Minus", "Period", "Slash", "Semicolon", "Equal", "LeftBracket",
@@ -8992,7 +8992,7 @@ void ImGui::UpdateMouseWheel()
     wheel.x = TestKeyOwner(ImGuiKey_MouseWheelX, ImGuiKeyOwner_None) ? g.IO.MouseWheelH : 0.0f;
     wheel.y = TestKeyOwner(ImGuiKey_MouseWheelY, ImGuiKeyOwner_None) ? g.IO.MouseWheel : 0.0f;
 
-    //IMGUI_DEBUG_LOG("MouseWheel X:%.3f Y:%.3f\n", wheel_x, wheel_y);
+    //IMGUI_DEBUG_LOG("MouseWheel x:%.3f y:%.3f\n", wheel_x, wheel_y);
     ImGuiWindow* mouse_window = g.WheelingWindow ? g.WheelingWindow : g.HoveredWindow;
     if (!mouse_window || mouse_window->Collapsed)
         return;
@@ -9355,7 +9355,7 @@ bool ImGui::IsKeyChordPressed(ImGuiKeyChord key_chord, ImGuiID owner_id, ImGuiIn
 bool ImGui::Shortcut(ImGuiKeyChord key_chord, ImGuiID owner_id, ImGuiInputFlags flags)
 {
     //ImGuiContext& g = *GImGui;
-    //IMGUI_DEBUG_LOG("Shortcut(%s, owner_id=0x%08X, flags=%X)\n", GetKeyChordName(key_chord, g.TempBuffer.Data, g.TempBuffer.Size), owner_id, flags);
+    //IMGUI_DEBUG_LOG("Shortcut(%s, owner_id=0x%08X, flags=%x)\n", GetKeyChordName(key_chord, g.TempBuffer.Data, g.TempBuffer.Size), owner_id, flags);
 
     // When using (owner_id == 0/Any): SetShortcutRouting() will use CurrentFocusScopeId and filter with this, so IsKeyPressed() is fine with he 0/Any.
     if ((flags & ImGuiInputFlags_RouteMask_) == 0)
@@ -10182,7 +10182,7 @@ void ImGui::EndGroup()
 // Helper to snap on edges when aiming at an item very close to the edge,
 // So the difference between WindowPadding and ItemSpacing will be in the visible area after scrolling.
 // When we refactor the scrolling API this may be configurable with a flag?
-// Note that the effect for this won't be visible on X axis with default Style settings as WindowPadding.x == ItemSpacing.x by default.
+// Note that the effect for this won't be visible on x axis with default Style settings as WindowPadding.x == ItemSpacing.x by default.
 static float CalcScrollEdgeSnap(float target, float snap_min, float snap_max, float snap_threshold, float center_ratio)
 {
     if (target <= snap_min + snap_threshold)
@@ -11168,7 +11168,7 @@ static bool ImGui::NavScoreItem(ImGuiNavItemData* result)
     // Compute distance between boxes
     // FIXME-NAV: Introducing biases for vertical navigation, needs to be removed.
     float dbx = NavScoreItemDistInterval(cand.Min.x, cand.Max.x, curr.Min.x, curr.Max.x);
-    float dby = NavScoreItemDistInterval(ImLerp(cand.Min.y, cand.Max.y, 0.2f), ImLerp(cand.Min.y, cand.Max.y, 0.8f), ImLerp(curr.Min.y, curr.Max.y, 0.2f), ImLerp(curr.Min.y, curr.Max.y, 0.8f)); // Scale down on Y to keep using box-distance for vertically touching items
+    float dby = NavScoreItemDistInterval(ImLerp(cand.Min.y, cand.Max.y, 0.2f), ImLerp(cand.Min.y, cand.Max.y, 0.8f), ImLerp(curr.Min.y, curr.Max.y, 0.2f), ImLerp(curr.Min.y, curr.Max.y, 0.8f)); // Scale down on y to keep using box-distance for vertically touching items
     if (dby != 0.0f && dbx != 0.0f)
         dbx = (dbx / 1000.0f) + ((dbx > 0.0f) ? +1.0f : -1.0f);
     float dist_box = ImFabs(dbx) + ImFabs(dby);
@@ -13882,7 +13882,7 @@ void ImGui::DebugRenderKeyboardPreview(ImDrawList* draw_list)
     {
         { 0, 0, "", ImGuiKey_Tab },      { 0, 1, "Q", ImGuiKey_Q }, { 0, 2, "W", ImGuiKey_W }, { 0, 3, "E", ImGuiKey_E }, { 0, 4, "R", ImGuiKey_R },
         { 1, 0, "", ImGuiKey_CapsLock }, { 1, 1, "A", ImGuiKey_A }, { 1, 2, "S", ImGuiKey_S }, { 1, 3, "D", ImGuiKey_D }, { 1, 4, "F", ImGuiKey_F },
-        { 2, 0, "", ImGuiKey_LeftShift },{ 2, 1, "Z", ImGuiKey_Z }, { 2, 2, "X", ImGuiKey_X }, { 2, 3, "C", ImGuiKey_C }, { 2, 4, "V", ImGuiKey_V }
+        { 2, 0, "", ImGuiKey_LeftShift },{ 2, 1, "z", ImGuiKey_Z }, { 2, 2, "x", ImGuiKey_X }, { 2, 3, "C", ImGuiKey_C }, { 2, 4, "V", ImGuiKey_V }
     };
 
     // Elements rendered manually via ImDrawList API are not clipped automatically.
@@ -14414,7 +14414,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
             Indent();
             Text("WheelingWindow: '%s'", g.WheelingWindow ? g.WheelingWindow->Name : "NULL");
             Text("WheelingWindowReleaseTimer: %.2f", g.WheelingWindowReleaseTimer);
-            Text("WheelingAxisAvg[] = { %.3f, %.3f }, Main Axis: %s", g.WheelingAxisAvg.x, g.WheelingAxisAvg.y, (g.WheelingAxisAvg.x > g.WheelingAxisAvg.y) ? "X" : (g.WheelingAxisAvg.x < g.WheelingAxisAvg.y) ? "Y" : "<none>");
+            Text("WheelingAxisAvg[] = { %.3f, %.3f }, Main Axis: %s", g.WheelingAxisAvg.x, g.WheelingAxisAvg.y, (g.WheelingAxisAvg.x > g.WheelingAxisAvg.y) ? "x" : (g.WheelingAxisAvg.x < g.WheelingAxisAvg.y) ? "y" : "<none>");
             Unindent();
         }
 
@@ -14460,7 +14460,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
                     }
                 }
             EndChild();
-            Text("(ActiveIdUsing: AllKeyboardKeys: %d, NavDirMask: 0x%X)", g.ActiveIdUsingAllKeyboardKeys, g.ActiveIdUsingNavDirMask);
+            Text("(ActiveIdUsing: AllKeyboardKeys: %d, NavDirMask: 0x%x)", g.ActiveIdUsingAllKeyboardKeys, g.ActiveIdUsingNavDirMask);
             Unindent();
         }
         TreePop();
@@ -14481,7 +14481,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
         Text("ActiveId: 0x%08X/0x%08X (%.2f sec), AllowOverlap: %d, Source: %s", g.ActiveId, g.ActiveIdPreviousFrame, g.ActiveIdTimer, g.ActiveIdAllowOverlap, GetInputSourceName(g.ActiveIdSource));
         DebugLocateItemOnHover(g.ActiveId);
         Text("ActiveIdWindow: '%s'", g.ActiveIdWindow ? g.ActiveIdWindow->Name : "NULL");
-        Text("ActiveIdUsing: AllKeyboardKeys: %d, NavDirMask: %X", g.ActiveIdUsingAllKeyboardKeys, g.ActiveIdUsingNavDirMask);
+        Text("ActiveIdUsing: AllKeyboardKeys: %d, NavDirMask: %x", g.ActiveIdUsingAllKeyboardKeys, g.ActiveIdUsingNavDirMask);
         Text("HoveredId: 0x%08X (%.2f sec), AllowOverlap: %d", g.HoveredIdPreviousFrame, g.HoveredIdTimer, g.HoveredIdAllowOverlap); // Not displaying g.HoveredId as it is update mid-frame
         Text("HoverItemDelayId: 0x%08X, Timer: %.2f, ClearTimer: %.2f", g.HoverItemDelayId, g.HoverItemDelayTimer, g.HoverItemDelayClearTimer);
         Text("DragDrop: %d, SourceId = 0x%08X, Payload \"%s\" (%d bytes)", g.DragDropActive, g.DragDropPayload.SourceId, g.DragDropPayload.DataType, g.DragDropPayload.DataSize);
@@ -14973,7 +14973,7 @@ void ImGui::DebugNodeWindow(ImGuiWindow* window, const char* label)
         (flags & ImGuiWindowFlags_ChildWindow)  ? "Child " : "",      (flags & ImGuiWindowFlags_Tooltip)     ? "Tooltip "   : "",  (flags & ImGuiWindowFlags_Popup) ? "Popup " : "",
         (flags & ImGuiWindowFlags_Modal)        ? "Modal " : "",      (flags & ImGuiWindowFlags_ChildMenu)   ? "ChildMenu " : "",  (flags & ImGuiWindowFlags_NoSavedSettings) ? "NoSavedSettings " : "",
         (flags & ImGuiWindowFlags_NoMouseInputs)? "NoMouseInputs":"", (flags & ImGuiWindowFlags_NoNavInputs) ? "NoNavInputs" : "", (flags & ImGuiWindowFlags_AlwaysAutoResize) ? "AlwaysAutoResize" : "");
-    BulletText("Scroll: (%.2f/%.2f,%.2f/%.2f) Scrollbar:%s%s", window->Scroll.x, window->ScrollMax.x, window->Scroll.y, window->ScrollMax.y, window->ScrollbarX ? "X" : "", window->ScrollbarY ? "Y" : "");
+    BulletText("Scroll: (%.2f/%.2f,%.2f/%.2f) Scrollbar:%s%s", window->Scroll.x, window->ScrollMax.x, window->Scroll.y, window->ScrollMax.y, window->ScrollbarX ? "x" : "", window->ScrollbarY ? "y" : "");
     BulletText("Active: %d/%d, WriteAccessed: %d, BeginOrderWithinContext: %d", window->Active, window->WasActive, window->WriteAccessed, (window->Active || window->WasActive) ? window->BeginOrderWithinContext : -1);
     BulletText("Appearing: %d, Hidden: %d (CanSkip %d Cannot %d), SkipItems: %d", window->Appearing, window->Hidden, window->HiddenFramesCanSkipItems, window->HiddenFramesCannotSkipItems, window->SkipItems);
     for (int layer = 0; layer < ImGuiNavLayer_COUNT; layer++)
@@ -14988,7 +14988,7 @@ void ImGui::DebugNodeWindow(ImGuiWindow* window, const char* label)
     const ImVec2* pr = window->NavPreferredScoringPosRel;
     for (int layer = 0; layer < ImGuiNavLayer_COUNT; layer++)
         BulletText("NavPreferredScoringPosRel[%d] = {%.1f,%.1f)", layer, (pr[layer].x == FLT_MAX ? -99999.0f : pr[layer].x), (pr[layer].y == FLT_MAX ? -99999.0f : pr[layer].y)); // Display as 99999.0f so it looks neater.
-    BulletText("NavLayersActiveMask: %X, NavLastChildNavWindow: %s", window->DC.NavLayersActiveMask, window->NavLastChildNavWindow ? window->NavLastChildNavWindow->Name : "NULL");
+    BulletText("NavLayersActiveMask: %x, NavLastChildNavWindow: %s", window->DC.NavLayersActiveMask, window->NavLastChildNavWindow ? window->NavLastChildNavWindow->Name : "NULL");
     if (window->RootWindow != window)       { DebugNodeWindow(window->RootWindow, "RootWindow"); }
     if (window->ParentWindow != NULL)       { DebugNodeWindow(window->ParentWindow, "ParentWindow"); }
     if (window->DC.ChildWindows.Size > 0)   { DebugNodeWindowsList(&window->DC.ChildWindows, "ChildWindows"); }
@@ -15139,7 +15139,7 @@ void ImGui::ShowDebugLogWindow(bool* p_open)
                 for (const char* p = line_begin; p <= line_end - 10; p++) // Search for 0x???????? identifiers
                 {
                     ImGuiID id = 0;
-                    if (p[0] != '0' || (p[1] != 'x' && p[1] != 'X') || sscanf(p + 2, "%X", &id) != 1)
+                    if (p[0] != '0' || (p[1] != 'x' && p[1] != 'X') || sscanf(p + 2, "%x", &id) != 1)
                         continue;
                     ImVec2 p0 = CalcTextSize(line_begin, p);
                     ImVec2 p1 = CalcTextSize(p, p + 10);

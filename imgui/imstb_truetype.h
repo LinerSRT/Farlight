@@ -53,7 +53,7 @@
 //       Walter van Niftrik         Ryan Griege
 //       David Gow                  Peter LaValle
 //       David Given                Sergey Popov
-//       Ivan-Assen Ivanov          Giumo X. Clanjor
+//       Ivan-Assen Ivanov          Giumo x. Clanjor
 //       Anthony Pesch              Higor Euripedes
 //       Johan Duparc               Thomas Fields
 //       Hou Qiming                 Derek Vinyard

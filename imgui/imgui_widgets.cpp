@@ -866,13 +866,13 @@ ImGuiID ImGui::GetWindowScrollbarID(ImGuiWindow* window, ImGuiAxis axis)
     return window->GetID(axis == ImGuiAxis_X ? "#SCROLLX" : "#SCROLLY");
 }
 
-// Return scrollbar rectangle, must only be called for corresponding axis if window->ScrollbarX/Y is set.
+// Return scrollbar rectangle, must only be called for corresponding axis if window->ScrollbarX/y is set.
 ImRect ImGui::GetWindowScrollbarRect(ImGuiWindow* window, ImGuiAxis axis)
 {
     const ImRect outer_rect = window->Rect();
     const ImRect inner_rect = window->InnerRect;
     const float border_size = window->WindowBorderSize;
-    const float scrollbar_size = window->ScrollbarSizes[axis ^ 1]; // (ScrollbarSizes.x = width of Y scrollbar; ScrollbarSizes.y = height of X scrollbar)
+    const float scrollbar_size = window->ScrollbarSizes[axis ^ 1]; // (ScrollbarSizes.x = width of y scrollbar; ScrollbarSizes.y = height of x scrollbar)
     IM_ASSERT(scrollbar_size > 0.0f);
     if (axis == ImGuiAxis_X)
         return ImRect(inner_rect.Min.x, ImMax(outer_rect.Min.y, outer_rect.Max.y - border_size - scrollbar_size), inner_rect.Max.x - border_size, outer_rect.Max.y - border_size);
@@ -3972,7 +3972,7 @@ static bool InputTextFilterCharacter(ImGuiContext* ctx, unsigned int* p_char, Im
             if (!(c >= '0' && c <= '9') && !(c >= 'a' && c <= 'f') && !(c >= 'A' && c <= 'F'))
                 return false;
 
-        // Turn a-z into A-Z
+        // Turn a-z into A-z
         if (flags & ImGuiInputTextFlags_CharsUppercase)
             if (c >= 'a' && c <= 'z')
                 c += (unsigned int)('A' - 'a');
@@ -4427,8 +4427,8 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         state->Stb.row_count_per_page = row_count_per_page;
 
         const int k_mask = (io.KeyShift ? STB_TEXTEDIT_K_SHIFT : 0);
-        const bool is_wordmove_key_down = is_osx ? io.KeyAlt : io.KeyCtrl;                     // OS X style: Text editing cursor movement using Alt instead of Ctrl
-        const bool is_startend_key_down = is_osx && io.KeySuper && !io.KeyCtrl && !io.KeyAlt;  // OS X style: Line/Text Start and End using Cmd+Arrows instead of Home/End
+        const bool is_wordmove_key_down = is_osx ? io.KeyAlt : io.KeyCtrl;                     // OS x style: Text editing cursor movement using Alt instead of Ctrl
+        const bool is_startend_key_down = is_osx && io.KeySuper && !io.KeyCtrl && !io.KeyAlt;  // OS x style: Line/Text Start and End using Cmd+Arrows instead of Home/End
 
         // Using Shortcut() with ImGuiInputFlags_RouteFocused (default policy) to allow routing operations for other code (e.g. calling window trying to use CTRL+A and CTRL+B: formet would be handled by InputText)
         // Otherwise we could simply assume that we own the keys as we are active.
@@ -4597,7 +4597,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
             else if (strcmp(buf, state->InitialTextA.Data) != 0)
             {
                 // Restore initial value. Only return true if restoring to the initial value changes the current buffer contents.
-                // Push records into the undo stack so we can CTRL+Z the revert operation itself
+                // Push records into the undo stack so we can CTRL+z the revert operation itself
                 apply_new_text = state->InitialTextA.Data;
                 apply_new_text_length = state->InitialTextA.Size - 1;
                 value_changed = true;
@@ -5179,7 +5179,7 @@ bool ImGui::ColorEdit4(const char* label, float col[4], ImGuiColorEditFlags flag
         const float w_items = w_inputs - style.ItemInnerSpacing.x * (components - 1);
 
         const bool hide_prefix = (IM_TRUNC(w_items / components) <= CalcTextSize((flags & ImGuiColorEditFlags_Float) ? "M:0.000" : "M:000").x);
-        static const char* ids[4] = { "##X", "##Y", "##Z", "##W" };
+        static const char* ids[4] = { "##x", "##y", "##z", "##W" };
         static const char* fmt_table_int[3][4] =
         {
             {   "%3d",   "%3d",   "%3d",   "%3d" }, // Short display
@@ -5236,7 +5236,7 @@ bool ImGui::ColorEdit4(const char* label, float col[4], ImGuiColorEditFlags flag
             i[3] = 0xFF; // alpha default to 255 is not parsed by scanf (e.g. inputting #FFFFFF omitting alpha)
             int r;
             if (alpha)
-                r = sscanf(p, "%02X%02X%02X%02X", (unsigned int*)&i[0], (unsigned int*)&i[1], (unsigned int*)&i[2], (unsigned int*)&i[3]); // Treat at unsigned (%X is unsigned)
+                r = sscanf(p, "%02X%02X%02X%02X", (unsigned int*)&i[0], (unsigned int*)&i[1], (unsigned int*)&i[2], (unsigned int*)&i[3]); // Treat at unsigned (%x is unsigned)
             else
                 r = sscanf(p, "%02X%02X%02X", (unsigned int*)&i[0], (unsigned int*)&i[1], (unsigned int*)&i[2]);
             IM_UNUSED(r); // Fixes C6031: Return value ignored: 'sscanf'.
@@ -7441,7 +7441,7 @@ bool ImGui::BeginMenuEx(const char* label, const char* icon, bool enabled)
 
     // The reference position stored in popup_pos will be used by Begin() to find a suitable position for the child menu,
     // However the final position is going to be different! It is chosen by FindBestWindowPosForPopup().
-    // e.g. Menus tend to overlap each other horizontally to amplify relative Z-ordering.
+    // e.g. Menus tend to overlap each other horizontally to amplify relative z-ordering.
     ImVec2 popup_pos, pos = window->DC.CursorPos;
     PushID(label);
     if (!enabled)
@@ -8795,7 +8795,7 @@ ImVec2 ImGui::TabItemCalcSize(const char* label, bool has_close_button_or_unsave
     ImVec2 label_size = CalcTextSize(label, NULL, true);
     ImVec2 size = ImVec2(label_size.x + g.Style.FramePadding.x, label_size.y + g.Style.FramePadding.y * 2.0f);
     if (has_close_button_or_unsaved_marker)
-        size.x += g.Style.FramePadding.x + (g.Style.ItemInnerSpacing.x + g.FontSize); // We use Y intentionally to fit the close button circle.
+        size.x += g.Style.FramePadding.x + (g.Style.ItemInnerSpacing.x + g.FontSize); // We use y intentionally to fit the close button circle.
     else
         size.x += g.Style.FramePadding.x + 1.0f;
     return ImVec2(ImMin(size.x, TabBarCalcMaxTabWidth()), size.y);

@@ -23,7 +23,6 @@ add_executable(Farlight
         imgui/imstb_truetype.h
         ue/engine.h
         cheat/overlay.h
-        ue/solarland.h
 )
 
 target_link_libraries(Farlight PRIVATE d3d11.lib d3d9.lib dwmapi.lib d3dcompiler.lib)
