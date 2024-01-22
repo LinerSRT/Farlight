@@ -71,7 +71,7 @@ void renderFrame() {
     if (Overlay::show) {
         inputHandle();
         ImGui::SetNextWindowPos(ImVec2((float) farlight.width / 2 - (float) Overlay::width / 2, (float) farlight.height / 2 - (float) Overlay::height / 2));
-        ImGui::SetNextWindowSize(ImVec2((float) farlight.width, (float) farlight.height));
+        ImGui::SetNextWindowSize(ImVec2((float) Overlay::width, (float) Overlay::height));
         ImGui::PushFont(Overlay::DefaultFont);
         ImGui::Begin("Farlight84 Tool", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
         renderMenu();
