@@ -28,6 +28,7 @@ typedef struct Farlight {
 
 
 Farlight farlight = Farlight();
+int selectedTab = 0;
 
 namespace Overlay {
     WNDCLASSEX className;
@@ -35,7 +36,7 @@ namespace Overlay {
     LPCSTR name;
     int width = 600;
     int height = 500;
-    bool show = true;
+    bool show = false;
     ImFont *DroidSans, *DefaultFont;
 }
 
@@ -270,24 +271,22 @@ bool allocateGame() {
 }
 
 
-auto drawLine(float x1, float y1, float x2, float y2, int rgb[], float width) -> VOID {
+auto drawLine(float x1, float y1, float x2, float y2, ImColor color, float width) -> VOID {
     auto vList = ImGui::GetForegroundDrawList();
     ImVec2 start = ImVec2(x1, y1);
     ImVec2 end = ImVec2(x2, y2);
-    ImColor color = ImColor(rgb[0], rgb[1], rgb[2], rgb[3]);
     vList->AddLine(start, end, color, width);
 }
 
-auto drawBox(float x, float y, float w, float h, int rgb[]) -> VOID {
-    drawLine(x, y, x + w, y, rgb, 1.3f); // top
-    drawLine(x, y - 1.3f, x, y + h + 1.4f, rgb, 1.3f); // left
-    drawLine(x + w, y - 1.3f, x + w, y + h + 1.4f, rgb, 1.3f);  // right
-    drawLine(x, y + h, x + w, y + h, rgb, 1.3f);   // bottom
+auto drawBox(float x, float y, float w, float h, ImColor color) -> VOID {
+    drawLine(x, y, x + w, y, color, 1.3f); // top
+    drawLine(x, y - 1.3f, x, y + h + 1.4f, color, 1.3f); // left
+    drawLine(x + w, y - 1.3f, x + w, y + h + 1.4f, color, 1.3f);  // right
+    drawLine(x, y + h, x + w, y + h, color, 1.3f);   // bottom
 }
 
-auto drawRectFilled(float x0, float y0, float x1, float y1, int rgb[], float rounding, int rounding_corners_flags) -> VOID {
+auto drawRectFilled(float x0, float y0, float x1, float y1, ImColor color, float rounding, int rounding_corners_flags) -> VOID {
     auto vList = ImGui::GetForegroundDrawList();
-    ImColor color = ImColor(rgb[0], rgb[1], rgb[2], rgb[3]);
     vList->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1), color, rounding, rounding_corners_flags);
 }
 
@@ -308,21 +307,21 @@ auto button(const char *label, bool sameLine, void (*_when_clicked)()) -> VOID {
 
 auto drawText(const std::string &text, float xX, float yY, float size, ImU32 color, bool center) -> VOID {
     ImVec2 pos = ImVec2(xX, yY);
-    ImGui::PushFont(Overlay::DefaultFont);
+    ImGui::PushFont(Overlay::DroidSans);
     std::stringstream stream(text);
     std::string line;
     float y = 0.0f;
     int index = 0;
     while (std::getline(stream, line)) {
-        ImVec2 textSize = Overlay::DefaultFont->CalcTextSizeA(size, FLT_MAX, 0.0f, line.c_str());
+        ImVec2 textSize = Overlay::DroidSans->CalcTextSizeA(size, FLT_MAX, 0.0f, line.c_str());
         if (center) {
-            ImGui::GetForegroundDrawList()->AddText(Overlay::DefaultFont, size, ImVec2((pos.x - textSize.x / 2.0f) + 1, (pos.y + textSize.y * index) + 1), ImGui::GetColorU32(ImVec4(0, 0, 0, 255)), line.c_str());
-            ImGui::GetForegroundDrawList()->AddText(Overlay::DefaultFont, size, ImVec2((pos.x - textSize.x / 2.0f) - 1, (pos.y + textSize.y * index) - 1), ImGui::GetColorU32(ImVec4(0, 0, 0, 255)), line.c_str());
-            ImGui::GetForegroundDrawList()->AddText(Overlay::DefaultFont, size, ImVec2(pos.x - textSize.x / 2.0f, pos.y + textSize.y * index), ImGui::GetColorU32(color), line.c_str());
+            ImGui::GetForegroundDrawList()->AddText(Overlay::DroidSans, size, ImVec2((pos.x - textSize.x / 2.0f) + 1, (pos.y + textSize.y * index) + 1), ImGui::GetColorU32(ImVec4(0, 0, 0, 255)), line.c_str());
+            ImGui::GetForegroundDrawList()->AddText(Overlay::DroidSans, size, ImVec2((pos.x - textSize.x / 2.0f) - 1, (pos.y + textSize.y * index) - 1), ImGui::GetColorU32(ImVec4(0, 0, 0, 255)), line.c_str());
+            ImGui::GetForegroundDrawList()->AddText(Overlay::DroidSans, size, ImVec2(pos.x - textSize.x / 2.0f, pos.y + textSize.y * index), ImGui::GetColorU32(color), line.c_str());
         } else {
-            ImGui::GetForegroundDrawList()->AddText(Overlay::DefaultFont, size, ImVec2((pos.x) + 1, (pos.y + textSize.y * index) + 1), ImGui::GetColorU32(ImVec4(0, 0, 0, 255)), line.c_str());
-            ImGui::GetForegroundDrawList()->AddText(Overlay::DefaultFont, size, ImVec2((pos.x) - 1, (pos.y + textSize.y * index) - 1), ImGui::GetColorU32(ImVec4(0, 0, 0, 255)), line.c_str());
-            ImGui::GetForegroundDrawList()->AddText(Overlay::DefaultFont, size, ImVec2(pos.x, pos.y + textSize.y * index), ImGui::GetColorU32(color), line.c_str());
+            ImGui::GetForegroundDrawList()->AddText(Overlay::DroidSans, size, ImVec2((pos.x) + 1, (pos.y + textSize.y * index) + 1), ImGui::GetColorU32(ImVec4(0, 0, 0, 255)), line.c_str());
+            ImGui::GetForegroundDrawList()->AddText(Overlay::DroidSans, size, ImVec2((pos.x) - 1, (pos.y + textSize.y * index) - 1), ImGui::GetColorU32(ImVec4(0, 0, 0, 255)), line.c_str());
+            ImGui::GetForegroundDrawList()->AddText(Overlay::DroidSans, size, ImVec2(pos.x, pos.y + textSize.y * index), ImGui::GetColorU32(color), line.c_str());
         }
         y = pos.y + textSize.y * ((float) index + 1.0f);
         index++;
@@ -330,11 +329,15 @@ auto drawText(const std::string &text, float xX, float yY, float size, ImU32 col
     ImGui::PopFont();
 }
 
-auto drawCircle( float xX, float yY, const float radius, int rgb[], const FLOAT lineWidth) -> VOID {
+auto drawCircle( float xX, float yY, const float radius, ImColor color, const FLOAT lineWidth) -> VOID {
     auto vList = ImGui::GetForegroundDrawList();
-    ImColor color = ImColor(rgb[0], rgb[1], rgb[2], rgb[3]);
     ImVec2 pos = ImVec2(xX, yY);
     vList->AddCircle(pos, radius, color, 120, lineWidth);
+}
+
+auto drawCircleOutline( float xX, float yY, const float radius, ImColor color, const FLOAT lineWidth) -> VOID {
+    drawCircle(xX, yY, radius, ImColor(0,0,0,255), lineWidth + 0.5f);
+    drawCircle(xX, yY, radius, color, lineWidth);
 }
 
 auto drawCircle(float x, float y, float radius, ImColor color, int segments) -> VOID {
@@ -342,14 +345,12 @@ auto drawCircle(float x, float y, float radius, ImColor color, int segments) -> 
     vList->AddCircle(ImVec2(x, y), radius, ImGui::ColorConvertFloat4ToU32(color), segments);
 }
 
-auto drawCircleFilled(float x, float y, float radius, int rgb[], int segments) -> VOID {
+auto drawCircleFilled(float x, float y, float radius, ImColor color, int segments) -> VOID {
     auto vList = ImGui::GetForegroundDrawList();
-    ImColor color = ImColor(rgb[0], rgb[1], rgb[2], rgb[3]);
     vList->AddCircleFilled(ImVec2(x, y), radius, ImGui::ColorConvertFloat4ToU32(color), segments);
 }
 
-void drawRoundRect(float x, float y, float width, float height, float radius, int rgb[]) {
-    ImColor color = ImColor(rgb[0], rgb[1], rgb[2], rgb[3]);
+void drawRoundRect(float x, float y, float width, float height, float radius, ImColor color) {
     const float corner_radius = std::clamp(radius, 0.0f, (width < height ? width : height) * 0.5f - 1.0f);
     const ImVec2 p0 = ImVec2(x, y);
     const ImVec2 p1 = ImVec2(x + width, y + height);
@@ -361,8 +362,7 @@ void drawRoundRect(float x, float y, float width, float height, float radius, in
     ImGui::GetForegroundDrawList()->PathFillConvex(color);
 }
 
-void drawRoundRect(float x, float y, float width, float height, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft, int rgb[]) {
-    ImColor color = ImColor(rgb[0], rgb[1], rgb[2], rgb[3]);
+void drawRoundRect(float x, float y, float width, float height, float radiusTopLeft, float radiusTopRight, float radiusBottomRight, float radiusBottomLeft, ImColor color) {
     const ImVec2 p0 = ImVec2(x, y);
     const ImVec2 p1 = ImVec2(x + width, y + height);
     const float topLeftRadius = std::clamp(radiusTopLeft, 0.0f, (width < height ? width : height) * 0.5f - 1.0f);
