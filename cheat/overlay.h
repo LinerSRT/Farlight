@@ -4,12 +4,14 @@
 #include <d3dcompiler.h>
 #include <dwmapi.h>
 #include <string>
+#include "images.h"
 #include <sstream>
 #include <tchar.h>
 #include <memory>
 #include <thread>
 #include <functional>
 #include <array>
+#include <d3dx9.h>
 #include "../imgui/imgui.h"
 #include "../imgui/imgui_impl_dx9.h"
 #include "../imgui/imgui_impl_win32.h"
@@ -26,6 +28,76 @@ typedef struct Farlight {
     int centerY{};
 } Farlight;
 
+namespace D3D {
+    IDirect3D9Ex *d3d = nullptr;
+    IDirect3DDevice9Ex *device = nullptr;
+    D3DPRESENT_PARAMETERS parameters = {};
+    MARGINS Margin = {-1};
+    MSG Message = {nullptr};
+}
+
+namespace Icons{
+    namespace Weapon {
+        PDIRECT3DTEXTURE9 AK = nullptr;
+        PDIRECT3DTEXTURE9 dikobraz = nullptr;
+        PDIRECT3DTEXTURE9 generator = nullptr;
+        PDIRECT3DTEXTURE9 invader = nullptr;
+        PDIRECT3DTEXTURE9 jupiter = nullptr;
+        PDIRECT3DTEXTURE9 M4A = nullptr;
+        PDIRECT3DTEXTURE9 madRat = nullptr;
+        PDIRECT3DTEXTURE9 vss = nullptr;
+        PDIRECT3DTEXTURE9 hound = nullptr;
+        PDIRECT3DTEXTURE9 whiteDwarf = nullptr;
+        PDIRECT3DTEXTURE9 bar95 = nullptr;
+        PDIRECT3DTEXTURE9 defender = nullptr;
+        PDIRECT3DTEXTURE9 MF18 = nullptr;
+        PDIRECT3DTEXTURE9 UMP99 = nullptr;
+        PDIRECT3DTEXTURE9 stellarWind = nullptr;
+        PDIRECT3DTEXTURE9 fanatic = nullptr;
+        PDIRECT3DTEXTURE9 madRabbit = nullptr;
+        PDIRECT3DTEXTURE9 rhino = nullptr;
+        PDIRECT3DTEXTURE9 vega = nullptr;
+        PDIRECT3DTEXTURE9 MG7 = nullptr;
+        PDIRECT3DTEXTURE9 UZI = nullptr;
+        PDIRECT3DTEXTURE9 arm = nullptr;
+    }
+
+    bool loadTextureFromFile(const char *filename, PDIRECT3DTEXTURE9 *out_texture) {
+        PDIRECT3DTEXTURE9 texture;
+        HRESULT textureLoad = D3DXCreateTextureFromFileA(D3D::device, filename, &texture);
+        if (textureLoad != S_OK)
+            return false;
+        D3DSURFACE_DESC imageDesc;
+        texture->GetLevelDesc(0, &imageDesc);
+        *out_texture = texture;
+        return true;
+    }
+
+    void loadIcons(){
+        loadTextureFromFile(R"(resources/ak.png)",  &Weapon::AK);
+        loadTextureFromFile(R"(resources/dikobraz.png)",  &Weapon::dikobraz);
+        loadTextureFromFile(R"(resources/generator.png)",  &Weapon::generator);
+        loadTextureFromFile(R"(resources/invader.png)",  &Weapon::invader);
+        loadTextureFromFile(R"(resources/jupiter.png)",  &Weapon::jupiter);
+        loadTextureFromFile(R"(resources/m4a.png)",  &Weapon::M4A);
+        loadTextureFromFile(R"(resources/madrat.png)",  &Weapon::madRat);
+        loadTextureFromFile(R"(resources/vss.png)",  &Weapon::vss);
+        loadTextureFromFile(R"(resources/mg7.png)",  &Weapon::MG7);
+        loadTextureFromFile(R"(resources/hound.png)",  &Weapon::hound);
+        loadTextureFromFile(R"(resources/whitedwarf.png)",  &Weapon::whiteDwarf);
+        loadTextureFromFile(R"(resources/bar95.png)",  &Weapon::bar95);
+        loadTextureFromFile(R"(resources/defender.png)",  &Weapon::defender);
+        loadTextureFromFile(R"(resources/mf18.png)",  &Weapon::MF18);
+        loadTextureFromFile(R"(resources/ump99.png)",  &Weapon::UMP99);
+        loadTextureFromFile(R"(resources/stellarwind.png)",  &Weapon::stellarWind);
+        loadTextureFromFile(R"(resources/fanatic.png)",  &Weapon::fanatic);
+        loadTextureFromFile(R"(resources/madrabbit.png)",  &Weapon::madRabbit);
+        loadTextureFromFile(R"(resources/rhino.png)",  &Weapon::rhino);
+        loadTextureFromFile(R"(resources/ancientstar.png)",  &Weapon::vega);
+        loadTextureFromFile(R"(resources/uzi.png)",  &Weapon::UZI);
+        loadTextureFromFile(R"(resources/arm.png)",  &Weapon::arm);
+    }
+}
 
 Farlight farlight = Farlight();
 int selectedTab = 0;
@@ -40,13 +112,21 @@ namespace Overlay {
     ImFont *DroidSans, *DefaultFont;
 }
 
-namespace D3D {
-    IDirect3D9Ex *d3d = nullptr;
-    IDirect3DDevice9Ex *device = nullptr;
-    D3DPRESENT_PARAMETERS parameters = {};
-    MARGINS Margin = {-1};
-    MSG Message = {nullptr};
+
+
+bool loadTextureFromFile(const char *filename, PDIRECT3DTEXTURE9 *out_texture, float *out_width, float *out_height) {
+    PDIRECT3DTEXTURE9 texture;
+    HRESULT textureLoad = D3DXCreateTextureFromFileA(D3D::device, filename, &texture);
+    if (textureLoad != S_OK)
+        return false;
+    D3DSURFACE_DESC imageDesc;
+    texture->GetLevelDesc(0, &imageDesc);
+    *out_texture = texture;
+    *out_width = (float) imageDesc.Width;
+    *out_height = (float) imageDesc.Height;
+    return true;
 }
+
 
 void render();
 
@@ -164,6 +244,7 @@ bool directInit() {
     if (Direct3DCreate9Ex(D3D_SDK_VERSION, &D3D::d3d) < 0) {
         return false;
     }
+
     D3DPRESENT_PARAMETERS Params = {0};
     Params.Windowed = TRUE;
     Params.SwapEffect = D3DSWAPEFFECT_DISCARD;
@@ -181,6 +262,10 @@ bool directInit() {
         D3D::d3d->Release();
         return false;
     }
+    Icons::loadIcons();
+
+
+
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.WantCaptureMouse || io.WantTextInput || io.WantCaptureKeyboard;
@@ -298,7 +383,7 @@ auto tabButton(const char *label, int *index, int val, bool sameLine) -> VOID {
 }
 
 auto button(const char *label, bool sameLine, void (*_when_clicked)()) -> VOID {
-    if (ImGui::Button(label, ImVec2(80, 25))){
+    if (ImGui::Button(label, ImVec2(80, 25))) {
         _when_clicked();
     }
     if (sameLine)
@@ -329,14 +414,14 @@ auto drawText(const std::string &text, float xX, float yY, float size, ImU32 col
     ImGui::PopFont();
 }
 
-auto drawCircle( float xX, float yY, const float radius, ImColor color, const FLOAT lineWidth) -> VOID {
+auto drawCircle(float xX, float yY, const float radius, ImColor color, const FLOAT lineWidth) -> VOID {
     auto vList = ImGui::GetForegroundDrawList();
     ImVec2 pos = ImVec2(xX, yY);
     vList->AddCircle(pos, radius, color, 120, lineWidth);
 }
 
-auto drawCircleOutline( float xX, float yY, const float radius, ImColor color, const FLOAT lineWidth) -> VOID {
-    drawCircle(xX, yY, radius, ImColor(0,0,0,255), lineWidth + 0.5f);
+auto drawCircleOutline(float xX, float yY, const float radius, ImColor color, const FLOAT lineWidth) -> VOID {
+    drawCircle(xX, yY, radius, ImColor(0, 0, 0, 255), lineWidth + 0.5f);
     drawCircle(xX, yY, radius, color, lineWidth);
 }
 
@@ -377,6 +462,33 @@ void drawRoundRect(float x, float y, float width, float height, float radiusTopL
     ImGui::GetForegroundDrawList()->PathFillConvex(color);
 }
 
-void drawSeparator(){
+void drawSeparator() {
     ImGui::Separator();
 }
+
+
+void drawImage(PDIRECT3DTEXTURE9 image, float x, float y, float w, float h, bool center) {
+    ImGui::GetForegroundDrawList()->AddImage(image,
+                                             ImVec2(x - (center ? w / 2 : 0), y - (center ? h / 2 : 0)),
+                                             ImVec2(x + (center ? w / 2 : w), y + (center ? h / 2 : h)),
+                                             ImVec2(0, 0),
+                                             ImVec2(1, 1)
+    );
+}
+
+//void drawImage(const char* filename, float x, float y, bool center) {
+//    float w = 0;
+//    float h = 0;
+//    PDIRECT3DTEXTURE9 image = nullptr;
+//    bool loaded = loadTextureFromFile(filename, &image, &w, &h);
+//    if (loaded)
+//        drawImage(image, x, y, w, h, center);
+//}
+//
+//void drawImage(const char* filename, float x, float y, float w, float h, bool center) {
+//    PDIRECT3DTEXTURE9 image = nullptr;
+//    bool loaded = loadTextureFromFile(filename, &image);
+//    if (loaded)
+//        drawImage(image, x, y, w, h, center);
+//}
+

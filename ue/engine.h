@@ -4,206 +4,7 @@
 #include <d3d9.h>
 #include <DirectXMath.h>
 #include "../utils/driver.h"
-
-namespace BonesType {
-    bool newSkin(int id) {
-        return (id == 132700 || id == 132106 || id == 131005 || id == 131208 || id == 130210 || id == 132701 || id == 131800 || id == 131802 || id == 130607 || id == 131505 || id == 132100 || id == 132702 || id == 120017);
-    }
-
-    struct Bones {
-        int Root;
-        int Bip001;
-        int pelvis;
-        int spine_01;
-        int spine_02;
-        int spine_03;
-        int clavicle_l;
-        int upperarm_l;
-        int lowerarm_l;
-        int hand_l;
-        int thumb_01_l;
-        int thumb_02_l;
-        int thumb_03_l;
-        int index_01_l;
-        int index_02_l;
-        int index_03_l;
-        int middle_01_l;
-        int middle_02_l;
-        int middle_03_l;
-        int ring_01_l;
-        int ring_02_l;
-        int ring_03_l;
-        int pinky_01_l;
-        int pinky_02_l;
-        int pinky_03_l;
-        int clavicle_r;
-        int upperarm_r;
-        int lowerarm_r;
-        int hand_r;
-        int thumb_01_r;
-        int thumb_02_r;
-        int thumb_03_r;
-        int index_01_r;
-        int index_02_r;
-        int index_03_r;
-        int middle_01_r;
-        int middle_02_r;
-        int middle_03_r;
-        int ring_01_r;
-        int ring_02_r;
-        int ring_03_r;
-        int pinky_01_r;
-        int pinky_02_r;
-        int pinky_03_r;
-        int RightHandWeaponAttach;
-        int neck_01;
-        int head;
-        int BackpackAttach;
-        int thigh_l;
-        int calf_l;
-        int foot_l;
-        int ball_l;
-        int thigh_r;
-        int calf_r;
-        int foot_r;
-        int ball_r;
-        int VB_spine_03_RightHandWeaponAttach;
-        int VB_VB_spine_03_RightHandWeaponAttach_hand_r;
-        int VB_VB_VB_spine_03_RightHandWeaponAttach_hand_r_lowerarm_r;
-
-        explicit Bones(bool IsNewSkinID) {
-            if (IsNewSkinID) {
-                initNewBones();
-            } else {
-                initDefaultBones();
-            }
-        }
-
-        void initDefaultBones() {
-            Root = 0;
-            Bip001 = 1;
-            pelvis = 2;
-            spine_01 = 3;
-            spine_02 = 4;
-            spine_03 = 5;
-            clavicle_l = 6;
-            upperarm_l = 7;
-            lowerarm_l = 8;
-            hand_l = 9;
-            thumb_01_l = 10;
-            thumb_02_l = 11;
-            thumb_03_l = 12;
-            index_01_l = 13;
-            index_02_l = 14;
-            index_03_l = 15;
-            middle_01_l = 16;
-            middle_02_l = 17;
-            middle_03_l = 18;
-            ring_01_l = 19;
-            ring_02_l = 20;
-            ring_03_l = 21;
-            pinky_01_l = 22;
-            pinky_02_l = 23;
-            pinky_03_l = 24;
-            clavicle_r = 25;
-            upperarm_r = 26;
-            lowerarm_r = 27;
-            hand_r = 28;
-            thumb_01_r = 29;
-            thumb_02_r = 30;
-            thumb_03_r = 31;
-            index_01_r = 32;
-            index_02_r = 33;
-            index_03_r = 34;
-            middle_01_r = 35;
-            middle_02_r = 36;
-            middle_03_r = 37;
-            ring_01_r = 38;
-            ring_02_r = 39;
-            ring_03_r = 40;
-            pinky_01_r = 41;
-            pinky_02_r = 42;
-            pinky_03_r = 43;
-            RightHandWeaponAttach = 44;
-            neck_01 = 45;
-            head = 46;
-            BackpackAttach = 47;
-            thigh_l = 48;
-            calf_l = 49;
-            foot_l = 50;
-            ball_l = 51;
-            thigh_r = 52;
-            calf_r = 53;
-            foot_r = 54;
-            ball_r = 55;
-            VB_spine_03_RightHandWeaponAttach = 56;
-            VB_VB_spine_03_RightHandWeaponAttach_hand_r = 57;
-            VB_VB_VB_spine_03_RightHandWeaponAttach_hand_r_lowerarm_r = 58;
-        }
-
-        void initNewBones() {
-            Root = 0;
-            Bip001 = 1;
-            pelvis = 2;
-            spine_01 = 3;
-            spine_02 = 4;
-            spine_03 = 5;
-            clavicle_l = 6;
-            upperarm_l = 7;
-            lowerarm_l = 8;
-            hand_l = 9;
-            thumb_01_l = 10;
-            thumb_02_l = 11;
-            thumb_03_l = 12;
-            index_01_l = 13;
-            index_02_l = 14;
-            index_03_l = 15;
-            middle_01_l = 16;
-            middle_02_l = 17;
-            middle_03_l = 18;
-            ring_01_l = 19;
-            ring_02_l = 20;
-            ring_03_l = 21;
-            pinky_01_l = 22;
-            pinky_02_l = 23;
-            pinky_03_l = 24;
-            upperarm_r = 29;
-            lowerarm_r = 30;
-            hand_r = 31;
-            thumb_01_r = 32;
-            thumb_02_r = 33;
-            thumb_03_r = 34;
-            index_01_r = 35;
-            index_02_r = 36;
-            index_03_r = 37;
-            middle_01_r = 38;
-            middle_02_r = 39;
-            middle_03_r = 40;
-            ring_01_r = 41;
-            ring_02_r = 42;
-            ring_03_r = 43;
-            pinky_01_r = 44;
-            pinky_02_r = 45;
-            pinky_03_r = 46;
-            RightHandWeaponAttach = 47;
-            neck_01 = 50;
-            head = 51;
-            BackpackAttach = 52;
-            thigh_l = 53;
-            calf_l = 54;
-            foot_l = 55;
-            ball_l = 56;
-            thigh_r = 59;
-            calf_r = 60;
-            foot_r = 61;
-            ball_r = 62;
-            VB_spine_03_RightHandWeaponAttach = 65;
-            VB_VB_spine_03_RightHandWeaponAttach_hand_r = 66;
-            VB_VB_VB_spine_03_RightHandWeaponAttach_hand_r_lowerarm_r = 67;
-        }
-    };
-}
-
+#include "../utils/strings.h"
 
 template<class TEnum>
 class TEnumAsByte {
@@ -234,7 +35,6 @@ public:
 private:
     uint8_t value;
 };
-
 
 template<class T>
 class TArray {
@@ -318,10 +118,9 @@ struct FString : private TArray<wchar_t> {
     }
 };
 
-typedef uint32_t FNameEntryId;
 
 struct FName {
-    FNameEntryId index = 0;
+    uint32_t index = 0;
     int32_t number = 0;
 
     [[nodiscard]] std::string toString(const uintptr_t gameBase) const {
@@ -374,7 +173,17 @@ struct FVector {
         float xV = this->x - v.x;
         float yV = this->y - v.y;
         float zV = this->z - v.z;
-        return sqrtf((xV * xV) + (yV * yV) + (zV * zV)) * 0.0135f;
+        return sqrtf((xV * xV) + (yV * yV) + (zV * zV));// * 0.0135f;
+    }
+
+    [[nodiscard]] inline float distanceIgnoreZ(FVector v) const {
+        float xV = this->x - v.x;
+        float yV = this->y - v.y;
+        return sqrtf((xV * xV) + (yV * yV));
+    }
+
+    [[nodiscard]] inline float distanceMeters(FVector v) const {
+        return distance(v) * 0.01f;
     }
 
 
@@ -535,48 +344,6 @@ D3DMATRIX matrixMultiplication(D3DMATRIX pM1, D3DMATRIX pM2) {
     return pOut;
 }
 
-int getHeadBoneIndex(int32_t characterID) {
-    switch (characterID) {
-        case 100006:
-        case 100015:
-        case 100004:
-            return 51;
-        case 100013:
-            return 46;
-        default:
-            return 46;
-    }
-}
-
-FTransform getBoneIndex(DWORD_PTR mesh, int index) {
-    auto bones = read<DWORD_PTR>(mesh + offsets::smcSkeletalMesh);
-    if (!bones)
-        bones = read<DWORD_PTR>((mesh + offsets::smcSkeletalMesh) + 0x10);
-    return read<FTransform>(bones + (index * 0x30));
-}
-
-FVector getBoneWithRotation(DWORD_PTR mesh, int id) {
-    FTransform bone = getBoneIndex(mesh, id);
-    auto world = read<FTransform>(mesh + 0x250);
-    D3DMATRIX matrix = matrixMultiplication(bone.toMatrix(), world.toMatrix());
-    return {matrix._41, matrix._42, matrix._43};
-}
-
-
-std::string nameFromId(const uintptr_t gameBase, int id) {
-    auto chunk = (UINT) ((int) (id) >> 16);
-    auto name = (USHORT) id;
-    auto poolChunk = read<UINT64>(gameBase + offsets::gNames + ((chunk + 2) * 8));
-    auto entryOffset = poolChunk + (ULONG) (2 * name);
-    auto nameEntry = read<INT16>(entryOffset);
-    auto nameLength = nameEntry >> 6;
-    char buff[1028];
-    if ((DWORD) nameLength && nameLength > 0) {
-        read_array(entryOffset + 2, buff, nameLength);
-        buff[nameLength] = '\0';
-        return std::string(buff);
-    } else return "";
-}
 
 
 struct FFastArraySerializerItem {
@@ -621,148 +388,47 @@ struct FSolarItemData : FFastArraySerializerItem {
 
 
 struct FMinimalViewInfo {
-    FVector Location; // 0x00(0x0c)
-    FRotator Rotation; // 0x0c(0x0c)
-    float FOV; // 0x18(0x04)
-    float DesiredFOV; // 0x1c(0x04)
-    float OrthoWidth; // 0x20(0x04)
-    float OrthoNearClipPlane; // 0x24(0x04)
-    float OrthoFarClipPlane; // 0x28(0x04)
-    float AspectRatio; // 0x2c(0x04)
+    FVector Location;
+    FRotator Rotation;
+    float FOV;
+    float DesiredFOV;
+    float OrthoWidth;
+    float OrthoNearClipPlane;
+    float OrthoFarClipPlane;
+    float AspectRatio;
 };
 
 
 struct FCameraCacheEntry {
-    float timestamp;                                                  // 0x0000   (0x0004)
-    unsigned char UnknownData00_5[0xC];                                       // 0x0004   (0x000C)  MISSED
-    FMinimalViewInfo POV;                                                        // 0x0010   (0x0650)
+    float timestamp;
+    unsigned char UnknownData00_5[0xC];
+    FMinimalViewInfo POV;
 };
 
 
-FVector projectWorldToScreen(DWORD_PTR localPlayerController, FVector worldLocation, FVector screenSize) {
-    FVector screen = FVector(0, 0, 0);
-    auto cameraCache = read<FCameraCacheEntry>(read<uintptr_t>(localPlayerController + offsets::pcPlayerCameraManager) + offsets::pcmCameraCachePrivate);
-    D3DMATRIX tempMatrix = matrix(cameraCache.POV.Rotation, FVector(0, 0, 0));
-    FVector vAxisX, vAxisY, vAxisZ;
-    vAxisX = FVector(tempMatrix.m[0][0], tempMatrix.m[0][1], tempMatrix.m[0][2]);
-    vAxisY = FVector(tempMatrix.m[1][0], tempMatrix.m[1][1], tempMatrix.m[1][2]);
-    vAxisZ = FVector(tempMatrix.m[2][0], tempMatrix.m[2][1], tempMatrix.m[2][2]);
-    FVector vDelta = worldLocation - cameraCache.POV.Location;
-    FVector vTransformed = FVector(vDelta.dot(vAxisY), vDelta.dot(vAxisZ), vDelta.dot(vAxisX));
-    if (vTransformed.z < 1.f)
-        vTransformed.z = 1.f;
-    float fovAngle = cameraCache.POV.FOV;
-    float screenCenterX = screenSize.x / 2.0f;
-    float screenCenterY = screenSize.y / 2.0f;
-    screen.x = screenCenterX + vTransformed.x * (screenCenterX / tanf(fovAngle * (float) M_PI / 360.f)) / vTransformed.z;
-    screen.y = screenCenterY - vTransformed.y * (screenCenterX / tanf(fovAngle * (float) M_PI / 360.f)) / vTransformed.z;
-    return screen;
+
+
+
+std::string nameFromId(int id) {
+    auto chunk = (UINT) ((int) (id) >> 16);
+    auto name = (USHORT) id;
+    auto poolChunk = read<UINT64>(baseId + offsets::gNames + ((chunk + 2) * 8));
+    auto entryOffset = poolChunk + (ULONG) (2 * name);
+    auto nameEntry = read<INT16>(entryOffset);
+    auto nameLength = nameEntry >> 6;
+    char buff[1028];
+    if ((DWORD) nameLength && nameLength > 0) {
+        read_array(entryOffset + 2, buff, nameLength);
+        buff[nameLength] = '\0';
+        return {buff};
+    } else return "";
 }
 
 
-
-struct TUObjectArray
-{
-    DWORD_PTR Objects;
-    static int getMaxElements() ;
-    static int getElementsSize() ;
-    [[nodiscard]] DWORD_PTR getObjectPointer(int id) const;
-};
-
-int TUObjectArray::getMaxElements() {
-    auto gObjects = read<DWORD_PTR>(baseId + offsets::gObject);
-    if (gObjects == 0)
-        return 0;
-
-    return read<int>(gObjects + 0xC - sizeof(int));
-}
-int TUObjectArray::getElementsSize() {
-    auto gObjects = read<DWORD_PTR>(baseId + offsets::gObject);
-    if (gObjects == 0)
-        return 0;
-    return read<int>(gObjects + 0xC);
-}
-
-DWORD_PTR TUObjectArray::getObjectPointer(int id) const {
-    if (id < 0 || id >= getElementsSize() || !Objects)
-        return -1;
-    const int elementsPerChunk = 64 * 1024;
-    const int chunkIndex = id / elementsPerChunk;
-    const int withinChunkIndex = id % elementsPerChunk;
-    auto chunk = read<DWORD_PTR>(Objects + chunkIndex);
-    if (!chunk)
-        return -1;
-    return read<DWORD_PTR>(chunk + (withinChunkIndex * 0x18));
-
-    //auto objects = read<DWORD_PTR>(baseId + offsets::gObject);
-    //auto chunk = read<DWORD_PTR>(objects + 8 * (id / 0x10000));
-    //return read<DWORD_PTR>(chunk + 24 * (id % 0x10000));
-}
-
-
-struct TWeakObjectPtr {
-    uint8_t ObjectIndex;
-    uint8_t ObjectSerialNumber;
-    [[nodiscard]] DWORD_PTR getPointer() const {
-        auto gObjects = read<TUObjectArray>(baseId + offsets::gObject);
-        return gObjects.getObjectPointer(ObjectIndex);
+struct WeakPtr{
+    static DWORD_PTR get(DWORD address) {
+        auto gObjects = read<DWORD_PTR>(baseId + offsets::gObject);
+        auto chunk = read<DWORD_PTR>(gObjects + 0x8 * (address / 0x10000));
+        return read<DWORD_PTR>(chunk + 0x18 * (address % 0x10000));
     }
 };
-
-
-
-
-
-
-
-
-
-
-
-//
-//class ASolarWeapon {
-//private:
-//    DWORD_PTR address;
-//public:
-//    explicit ASolarWeapon(DWORD_PTR address) : address(address) {}
-//
-//    [[nodiscard]] ASolarWeaponProjectileSpline getProjSpline() const {
-//        return read<ASolarWeaponProjectileSpline>(address + 0x0460);
-//    }
-//
-//    [[nodiscard]] UGlobalWeaponConfig getGlobalConfigPrivate() const {
-//        return read<UGlobalWeaponConfig>(address + 0x0488);
-//    }
-//
-//    [[nodiscard]] USingleWeaponConfig getConfig() const {
-//        return read<USingleWeaponConfig>(address + 0x0470);
-//    }
-//
-//    [[nodiscard]] FHitResult getHitResult() const {
-//        return read<FHitResult>(address + 0x0760);
-//    }
-//
-//    [[nodiscard]] bool isTracingAimTarget() const {
-//        return read<bool>(address + 0x066D);
-//    }
-//
-//    [[nodiscard]] bool isDetectedEnemy() const {
-//        return read<bool>(address + 0x066C);
-//    }
-//
-//    [[nodiscard]] int32_t getClipRemainAmmoCount() const {
-//        return read<int32_t>(address + 0x04F0);
-//    }
-//
-//    [[nodiscard]] int32_t getExtraAmmo() const {
-//        return read<int32_t>(address + 0x0498);
-//    }
-//
-//    [[nodiscard]] float getFireChargingTime() const {
-//        return read<float>(address + 0x03D8);
-//    }
-//
-//    [[nodiscard]] float getFireChargingSumTime() const {
-//        return read<float>(address + 0x03E0);
-//    }
-//};

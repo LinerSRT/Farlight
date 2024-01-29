@@ -2,11 +2,20 @@
 #include <Windows.h>
 
 namespace offsets {
-    DWORD gWorld = 0x7022078;
-    DWORD gNames = 0x6EA1840;
-    DWORD gObject = 0x6ED17A0;
+    DWORD gWorld = 0x7022078; // Old: 0x7033488
+    DWORD gNames = 0x6EA1840; // Old: 0x6EBB780
+    DWORD gObject = 0x6ED17A0; // Old: 0x6ED40E0
+
+
+    /// Class /Script/CoreUObject.ObjectArray
+    DWORD oaObjectArrayToNumElements = 0x14;
+
+    /// Class /Script/CoreUObject.Field
+    DWORD fFieldToText = 0x0028; //UObject
 
     /// Class /Script/CoreUObject.Object
+    DWORD oObjectToInternalIndex = 0xC; //UObjectToInternalIndex
+    DWORD oObjectToClassPrivate = 0x10; //UObjectToClassPrivate
     DWORD oNamePrivate = 0x0018; //FName
     DWORD oOuterPrivate = 0x0020; //UObject
 
@@ -137,4 +146,13 @@ namespace offsets {
 
     /// Struct /Script/Solarland.PlayerWeaponSlotInfo
     DWORD pwsWeapon = 0x0000; //TWeakObjectPtr<ASolarPlayerWeapon*>
+
+    /// Struct /Script/Solarland.PlayerWeaponEquipStatusInfo
+    DWORD playerWeaponEquipStatusInfo = 0x016C; //PlayerWeaponEquipStatusInfo
+
+
+    /// Class /Script/Solarland.SolarPlayerWeapon
+    DWORD spwShootStatus = 0x0A2C;
+    DWORD spwDetectedEnemy = 0x066C;
+    DWORD spwWeaponConfig = 0x0470;
 }

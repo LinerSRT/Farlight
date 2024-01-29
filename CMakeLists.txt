@@ -28,6 +28,9 @@ add_executable(Farlight
         solarland/solar_enum.h
         utils/input.h
         utils/f_math.h
+        utils/strings.h
+        cheat/solarland.h
+        cheat/images.h
 )
 
-target_link_libraries(Farlight PRIVATE d3d11.lib d3d9.lib dwmapi.lib d3dcompiler.lib)
+target_link_libraries(Farlight PRIVATE d3d11.lib d3d9.lib dwmapi.lib d3dcompiler.lib d3dx9.lib)
