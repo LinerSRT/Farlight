@@ -24,9 +24,14 @@ typedef struct Entity {
 int bone = 0;
 float aimbotFov = 100.0f;
 WorldSettings worldSettings;
+SolarCharacter localPlayer;
+
+
 std::vector<Entity> itemList;
 std::vector<Entity> vehicleList;
 std::vector<SolarCharacter> solarList;
+uint64_t readThreadDelay;
+uint64_t drawThreadDelay;
 
 struct Pointers {
     DWORD_PTR uWorld;
@@ -44,7 +49,6 @@ struct Pointers {
     TArray<DWORD_PTR> entityList;;
     DWORD_PTR cameraManager;
     FCameraCacheEntry cameraCache;
-    SolarCharacter player;
 };
 
 
@@ -84,26 +88,27 @@ void print(const std::string &value) {
 
 
 void aimFunction(float fov) {
+    return;
     FVector screenCenter = FVector(static_cast<float>((float) farlight.width / 2.0f), static_cast<float>((float) farlight.height / 2.0f), 0);
     FVector screenSize = FVector((float) farlight.width, (float) farlight.height, 0);
-    auto localPlayerPosition = pointers.player.getWorldPosition();
+    auto localPlayerPosition = localPlayer.getWorldPosition();
     float dFromCrosshair = FLT_MAX;
     float dToPlayer = FLT_MAX;
     SolarCharacter crosshairCharacter;
     SolarCharacter distanceCharacter;
     SolarCharacter resultCharacter;
     for (const auto &character: solarList) {
-        if (character.getId() == pointers.player.getId() || pointers.player.isMyTeammate(character) || character.isDead())
+        if (character.getId() == localPlayer.getId() || localPlayer.isMyTeammate(character) || character.isDead())
             continue;
         auto headPosition = character.getWorldHeadPosition();
         auto distance = localPlayerPosition.distanceIgnoreZ(headPosition);
-        auto aimPosition = pointers.player.targetCorrection(
+        auto aimPosition = localPlayer.targetCorrection(
                 worldSettings,
                 distance,
                 headPosition,
                 character.getVelocity()
         );
-        auto aimPositionSP = pointers.player.projectWorldToScreen(aimPosition, screenSize);
+        auto aimPositionSP = localPlayer.projectWorldToScreen(aimPosition, screenSize);
         auto dCrosshair = aimPositionSP.distance2D(screenCenter);
         if (((dFromCrosshair == FLT_MAX || dCrosshair < dFromCrosshair) && dCrosshair < fov) || !crosshairCharacter.isValid()) {
             dFromCrosshair = dCrosshair;
@@ -126,21 +131,22 @@ void aimFunction(float fov) {
     if (resultCharacter.isValid()) {
         auto characterPosition = resultCharacter.getWorldPosition();
         auto characterHeadPosition = resultCharacter.getWorldHeadPosition();
-        auto predictedAimPosition = pointers.player.targetCorrection(
+        auto predictedAimPosition = localPlayer.targetCorrection(
                 worldSettings,
-                pointers.player.getWorldPosition().distance(characterPosition),
+                localPlayer.getWorldPosition().distance(characterPosition),
                 characterHeadPosition,
                 resultCharacter.getVelocity()
         );
-        auto aimPositionSP = pointers.player.projectWorldToScreen(predictedAimPosition, screenSize);
+        auto aimPositionSP = localPlayer.projectWorldToScreen(predictedAimPosition, screenSize);
         if (GetAsyncKeyState(VK_SHIFT) && !resultCharacter.isDead())
-            move_to((float) farlight.width, (float) farlight.height, 1, aimPositionSP.x, aimPositionSP.y);
+            move_to((float) farlight.width, (float) farlight.height, 10, aimPositionSP.x, aimPositionSP.y);
     }
 }
 
 
 [[noreturn]] void update() {
     while (true) {
+        auto start = local_time::milliseconds();
         if (GetAsyncKeyState(VK_UP) & 1) {
             bone += 1;
         }
@@ -157,7 +163,7 @@ void aimFunction(float fov) {
         pointers.owningGameInstance = read<DWORD_PTR>(pointers.uWorld + offsets::wOwningGameInstance);
         pointers.persistentLevel = read<DWORD_PTR>(pointers.uWorld + offsets::wPersistentLevel);
         pointers.localPlayer = read<DWORD_PTR>(read<DWORD_PTR>(pointers.owningGameInstance + offsets::giLocalPlayers));
-        pointers.player = SolarCharacter(pointers.localPlayer);
+        localPlayer = SolarCharacter(pointers.localPlayer);
         pointers.localPlayerController = read<DWORD_PTR>(pointers.localPlayer + offsets::pPlayerController);
         pointers.localPlayerPawn = read<DWORD_PTR>(pointers.localPlayerController + offsets::pcAcknowledgedPawn);
         pointers.localPlayerRoot = read<DWORD_PTR>(pointers.localPlayerPawn + offsets::pRootComponent);
@@ -198,6 +204,7 @@ void aimFunction(float fov) {
         vehicleList = tmp_vehicleList;
         solarList = tmp_solarList;
         aimFunction(aimbotFov);
+        readThreadDelay = local_time::milliseconds() - start;
         //std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 }
@@ -214,8 +221,8 @@ bool isInRadius(FVector screenCenter, FVector position, float radius) {
 }
 
 
-
 void render() {
+    auto start = local_time::milliseconds();
     FVector screenSize = FVector((float) farlight.width, (float) farlight.height, 0);
     FVector screenCenter = FVector(static_cast<float>((float) farlight.width / 2.0f), static_cast<float>((float) farlight.height / 2.0f), 0);
 
@@ -223,43 +230,249 @@ void render() {
     drawCircle(screenCenter.x, screenCenter.y, aimbotFov, ImColor(255, 255, 255), 1.0f);
 
 
-    auto playerPosition = pointers.player.getWorldPosition();
+    auto playerPosition = localPlayer.getWorldPosition();
     for (const auto &character: solarList) {
-        if (character.getId() == pointers.player.getId() || pointers.player.isMyTeammate(character))
-            continue;
+        //if (character.getId() == localPlayer.getId())
+        //    continue;
+        //if (localPlayer.isMyTeammate(character))
+        //    continue;
         if (character.isDead())
             continue;
+
+        character.getVelocity();
+
         auto characterPosition = character.getWorldPosition();
-        auto characterHeadPosition = character.getWorldHeadPosition();
-        auto predictedAimPosition = pointers.player.targetCorrection(
-                worldSettings,
-                playerPosition.distance(characterPosition),
-                characterHeadPosition,
-                character.getVelocity()
+        auto characterHeadPosition = character.getWorldHeadPosition(20);
+        auto characterOnScreenBottom = localPlayer.projectWorldToScreen(characterPosition, screenSize);
+        auto characterOnScreenTop = localPlayer.projectWorldToScreen(characterHeadPosition, screenSize);
+        auto characterHeight = characterOnScreenBottom.y - characterOnScreenTop.y;
+        auto characterWidth = characterHeight * 0.5f;
+
+
+        drawBox(
+                characterOnScreenBottom.x - characterWidth / 2,
+                characterOnScreenBottom.y - characterHeight,
+                characterWidth,
+                characterHeight,
+                ImColor(255, 0, 255),
+                0.3f
         );
-        auto characterRootSP = pointers.player.projectWorldToScreen(characterPosition, screenSize);
-        auto characterHeadSP = pointers.player.projectWorldToScreen(characterHeadPosition, screenSize);
-        auto aimPositionSP = pointers.player.projectWorldToScreen(predictedAimPosition, screenSize);
-        auto characterHeight = abs(characterHeadSP.y - characterRootSP.y);
-        auto characterWidth = characterHeight * 0.64f;
-        ImColor lineColor = ImColor(102, 178, 255);
-        if (character.isBot())
-            lineColor = ImColor(255, 51, 51);
-        if (pointers.player.isMyTeammate(character))
-            lineColor = ImColor(178, 255, 102);
-        std::string name = character.isBot() ? "BOT" : character.getName().toString();
-        std::string playerHint = name.substr(0, name.find('#')) + " [" + std::to_string(static_cast<int>(playerPosition.distanceMeters(characterPosition))) + "m]";
-        drawText(playerHint, characterRootSP.x, characterRootSP.y, 14.0f, lineColor, true);
-        FVector startPoint = visibleRadius(aimPositionSP, aimbotFov);
-        if (isInRadius(screenCenter, aimPositionSP, aimbotFov)) {
-            drawCircleFilled(aimPositionSP.x, aimPositionSP.y, 2.0f, lineColor, 30);
-            drawCircleFilled(characterRootSP.x, characterRootSP.y, 2.0f, lineColor, 30);
-        } else {
-            drawLine(startPoint.x, startPoint.y, aimPositionSP.x, aimPositionSP.y, ImColor(0, 0, 0), 1.5f);
-            drawLine(startPoint.x, startPoint.y, aimPositionSP.x, aimPositionSP.y, lineColor, 1.0f);
-            drawCircleFilled(startPoint.x, startPoint.y, 2.0f, lineColor, 30);
-            drawCircleFilled(aimPositionSP.x, aimPositionSP.y, 2.0f, lineColor, 30);
+        auto characterName = character.getName().toString();
+        characterName = characterName.substr(0, characterName.find('#'));
+        characterName = strings::isStartWith(characterName, "[") ? characterName.substr(characterName.find(']') + 1, characterName.size()) : characterName;
+        std::string weaponState = "No weapon";
+        switch (character.getActiveWeaponState()) {
+            case Idle:
+                weaponState = "Idle";
+                break;
+            case PreFire:
+                weaponState = "PreFire";
+                break;
+            case RealFire:
+                weaponState = "RealFire";
+                break;
+            case Rechamber:
+                weaponState = "Rechamber";
+                break;
+            case Reloading:
+                weaponState = "Reloading";
+                break;
+            case Bolting:
+                weaponState = "Bolting";
+                break;
+            case Charging:
+                weaponState = "Charging";
+                break;
+            case Overloading:
+                weaponState = "Overloading";
+                break;
+            case KeyUPHolding:
+                weaponState = "KeyUPHolding";
+                break;
         }
+
+        std::string weaponName = "No weapon";
+        PDIRECT3DTEXTURE9 weaponIcon = Icons::Weapon::arm;
+        switch (character.getWeaponId()) {
+            case EWeaponId::EWeaponId_Invader:
+                weaponIcon = Icons::Weapon::invader;
+                weaponName = "Invader";
+                break;
+            case EWeaponId::EWeaponId_Hound:
+                weaponIcon = Icons::Weapon::hound;
+                weaponName = "Hound";
+                break;
+            case EWeaponId::EWeaponId_WhiteDwarf:
+                weaponIcon = Icons::Weapon::whiteDwarf;
+                weaponName = "White dwarf";
+                break;
+            case EWeaponId::EWeaponId_Bar95:
+                weaponIcon = Icons::Weapon::bar95;
+                weaponName = "Bar-95";
+                break;
+            case EWeaponId::EWeaponId_Defender:
+                weaponIcon = Icons::Weapon::defender;
+                weaponName = "Defender";
+                break;
+            case EWeaponId::EWeaponId_Dikobraz:
+                weaponIcon = Icons::Weapon::dikobraz;
+                weaponName = "Porcupine";
+                break;
+            case EWeaponId::EWeaponId_Generator:
+                weaponIcon = Icons::Weapon::generator;
+                weaponName = "Generator";
+                break;
+            case EWeaponId::EWeaponId_MF18:
+                weaponIcon = Icons::Weapon::MF18;
+                weaponName = "MF-18";
+                break;
+            case EWeaponId::EWeaponId_M4:
+                weaponIcon = Icons::Weapon::M4A;
+                weaponName = "M4";
+                break;
+            case EWeaponId::EWeaponId_UMP99:
+                weaponIcon = Icons::Weapon::UMP99;
+                weaponName = "UMP-99";
+                break;
+            case EWeaponId::EWeaponId_StellarWind:
+                weaponIcon = Icons::Weapon::stellarWind;
+                weaponName = "Stellar wind";
+                break;
+            case EWeaponId::EWeaponId_Fanatic:
+                weaponIcon = Icons::Weapon::fanatic;
+                weaponName = "Fanatic";
+                break;
+            case EWeaponId::EWeaponId_AK:
+                weaponIcon = Icons::Weapon::AK;
+                weaponName = "AK";
+                break;
+            case EWeaponId::EWeaponId_MadRabbit:
+                weaponIcon = Icons::Weapon::madRabbit;
+                weaponName = "Mad rabbit";
+                break;
+            case EWeaponId::EWeaponId_Jupiter:
+                weaponIcon = Icons::Weapon::jupiter;
+                weaponName = "Jupiter";
+                break;
+            case EWeaponId::EWeaponId_MadRat:
+                weaponIcon = Icons::Weapon::madRat;
+                weaponName = "Mad rat";
+                break;
+            case EWeaponId::EWeaponId_VSS:
+                weaponIcon = Icons::Weapon::vss;
+                weaponName = "VSS";
+                break;
+            case EWeaponId::EWeaponId_Rhino:
+                weaponIcon = Icons::Weapon::rhino;
+                weaponName = "Rhino";
+                break;
+            case EWeaponId::EWeaponId_Vega:
+                weaponIcon = Icons::Weapon::vega;
+                weaponName = "Vega";
+                break;
+            case EWeaponId::EWeaponId_MG7:
+                weaponIcon = Icons::Weapon::MG7;
+                weaponName = "MG7";
+                break;
+            case EWeaponId::EWeaponId_UZI:
+                weaponIcon = Icons::Weapon::UZI;
+                weaponName = "UZI";
+                break;
+        }
+
+        TextOptions options{};
+        options.padding = 8;
+        options.withBackground = false;
+        options.color = character.isBot() ? ImColor(255, 80, 80, 255) : ImColor(80, 80, 255, 255);
+        options.cornerRadius = 6;
+        options.fontSize = 16;
+        options.gravity = START;
+        auto lastDraw = drawText(
+                characterName,
+                ImVec2(characterOnScreenBottom.x - characterWidth / 2, characterOnScreenBottom.y - characterHeight),
+                options
+        );
+        lastDraw = drawText(
+                "Character id: "+std::to_string(character.getId()),
+                ImVec2(characterOnScreenBottom.x - characterWidth / 2, lastDraw.w),
+                options
+        );
+        lastDraw = drawText(
+                "Skin id: "+std::to_string(character.getSkinId()),
+                ImVec2(characterOnScreenBottom.x - characterWidth / 2, lastDraw.w),
+                options
+        );
+        options.color = ImColor(255, 255, 0);
+        lastDraw = drawText(
+                "-------------",
+                ImVec2(characterOnScreenBottom.x - characterWidth / 2, lastDraw.w),
+                options
+        );
+        lastDraw = drawText(
+                "Weapon state: " + weaponState,
+                ImVec2(characterOnScreenBottom.x - characterWidth / 2, lastDraw.w),
+                options
+        );
+        lastDraw = drawText(
+                "Weapon name: " + weaponName,
+                ImVec2(characterOnScreenBottom.x - characterWidth / 2, lastDraw.w),
+                options
+        );
+        lastDraw = drawText(
+                "Weapon slot: " + std::to_string(character.getActiveWeaponSlot()),
+                ImVec2(characterOnScreenBottom.x - characterWidth / 2, lastDraw.w),
+                options
+        );
+        lastDraw = drawText(
+                std::to_string(localPlayer.getCameraPosition().distance(characterPosition) / worldSettings.worldToMeters) + "m",
+                ImVec2(characterOnScreenBottom.x - characterWidth / 2, lastDraw.w),
+                options
+        );
+        options.color = ImColor(0, 120, 0);
+        lastDraw = drawText(
+                "-------------",
+                ImVec2(characterOnScreenBottom.x - characterWidth / 2, lastDraw.w),
+                options
+        );
+
+
+        lastDraw = drawText(
+                "Root location :" + character.getWorldPosition().debug(),
+                ImVec2(characterOnScreenBottom.x - characterWidth / 2, lastDraw.w),
+                options
+        );
+
+//        auto predictedAimPosition = localPlayer.targetCorrection(
+//                worldSettings,
+//                playerPosition.distance(characterPosition),
+//                characterHeadPosition,
+//                character.getVelocity()
+//        );
+//        auto characterRootSP = localPlayer.projectWorldToScreen(characterPosition, screenSize);
+//        auto characterHeadSP = localPlayer.projectWorldToScreen(characterHeadPosition, screenSize);
+//        auto aimPositionSP = localPlayer.projectWorldToScreen(predictedAimPosition, screenSize);
+//
+//        ImColor lineColor = ImColor(102, 178, 255);
+//        if (character.isBot())
+//            lineColor = ImColor(255, 51, 51);
+//        if (localPlayer.isMyTeammate(character))
+//            lineColor = ImColor(178, 255, 102);
+//        std::string name = character.isBot() ? "BOT" : character.getName().toString();
+//        std::string playerHint = name.substr(0, name.find('#')) + " [" + std::to_string(static_cast<int>(playerPosition.distance(characterPosition))) + "m]";
+//        drawText(playerHint, characterRootSP.x, characterRootSP.y, 14.0f, lineColor, true);
+//        FVector startPoint = visibleRadius(aimPositionSP, aimbotFov);
+//        if (isInRadius(screenCenter, aimPositionSP, aimbotFov)) {
+//            drawCircleFilled(aimPositionSP.x, aimPositionSP.y, 2.0f, lineColor, 30);
+//            drawCircleFilled(characterRootSP.x, characterRootSP.y, 2.0f, lineColor, 30);
+//        } else {
+//            drawLine(startPoint.x, startPoint.y, aimPositionSP.x, aimPositionSP.y, ImColor(0, 0, 0), 1.5f);
+//            drawLine(startPoint.x, startPoint.y, aimPositionSP.x, aimPositionSP.y, lineColor, 1.0f);
+//            drawCircleFilled(startPoint.x, startPoint.y, 2.0f, lineColor, 30);
+//            drawCircleFilled(aimPositionSP.x, aimPositionSP.y, 2.0f, lineColor, 30);
+//        }
+
+//        drawText(weaponState, characterRootSP.x, characterRootSP.y + 40, 14.0f, lineColor, true);
+//        drawText(std::to_string(character.getSkinId()), characterRootSP.x, characterRootSP.y + 50, 14.0f, lineColor, true);
 
 
 //
@@ -270,101 +483,7 @@ void render() {
 //        auto top = characterHeadSP.y + characterHeight;
 //        auto bottom = top + (float) barHeight;
 //        FVector weaponIconPos = FVector(left + 24, top + 16, 0);
-//        std::string weaponName = "Unknown";
-//        PDIRECT3DTEXTURE9 weaponIcon = Icons::Weapon::arm;
-//        drawRectFilled(
-//                left,
-//                top,
-//                right,
-//                bottom,
-//                ImColor(23, 23, 23, 120), 8, ImDrawFlags_RoundCornersAll);
-//
-//        switch (character.getWeaponId()) {
-//            case EWeaponId::EWeaponId_Invader:
-//                weaponIcon = Icons::Weapon::invader;
-//                weaponName = "Invader";
-//                break;
-//            case EWeaponId::EWeaponId_Hound:
-//                weaponIcon = Icons::Weapon::hound;
-//                weaponName = "Hound";
-//                break;
-//            case EWeaponId::EWeaponId_WhiteDwarf:
-//                weaponIcon = Icons::Weapon::whiteDwarf;
-//                weaponName = "White dwarf";
-//                break;
-//            case EWeaponId::EWeaponId_Bar95:
-//                weaponIcon = Icons::Weapon::bar95;
-//                weaponName = "Bar-95";
-//                break;
-//            case EWeaponId::EWeaponId_Defender:
-//                weaponIcon = Icons::Weapon::defender;
-//                weaponName = "Defender";
-//                break;
-//            case EWeaponId::EWeaponId_Dikobraz:
-//                weaponIcon = Icons::Weapon::dikobraz;
-//                weaponName = "Porcupine";
-//                break;
-//            case EWeaponId::EWeaponId_Generator:
-//                weaponIcon = Icons::Weapon::generator;
-//                weaponName = "Generator";
-//                break;
-//            case EWeaponId::EWeaponId_MF18:
-//                weaponIcon = Icons::Weapon::MF18;
-//                weaponName = "MF-18";
-//                break;
-//            case EWeaponId::EWeaponId_M4:
-//                weaponIcon = Icons::Weapon::M4A;
-//                weaponName = "M4";
-//                break;
-//            case EWeaponId::EWeaponId_UMP99:
-//                weaponIcon = Icons::Weapon::UMP99;
-//                weaponName = "UMP-99";
-//                break;
-//            case EWeaponId::EWeaponId_StellarWind:
-//                weaponIcon = Icons::Weapon::stellarWind;
-//                weaponName = "Stellar wind";
-//                break;
-//            case EWeaponId::EWeaponId_Fanatic:
-//                weaponIcon = Icons::Weapon::fanatic;
-//                weaponName = "Fanatic";
-//                break;
-//            case EWeaponId::EWeaponId_AK:
-//                weaponIcon = Icons::Weapon::AK;
-//                weaponName = "AK";
-//                break;
-//            case EWeaponId::EWeaponId_MadRabbit:
-//                weaponIcon = Icons::Weapon::madRabbit;
-//                weaponName = "Mad rabbit";
-//                break;
-//            case EWeaponId::EWeaponId_Jupiter:
-//                weaponIcon = Icons::Weapon::jupiter;
-//                weaponName = "Jupiter";
-//                break;
-//            case EWeaponId::EWeaponId_MadRat:
-//                weaponIcon = Icons::Weapon::madRat;
-//                weaponName = "Mad rat";
-//                break;
-//            case EWeaponId::EWeaponId_VSS:
-//                weaponIcon = Icons::Weapon::vss;
-//                weaponName = "VSS";
-//                break;
-//            case EWeaponId::EWeaponId_Rhino:
-//                weaponIcon = Icons::Weapon::rhino;
-//                weaponName = "Rhino";
-//                break;
-//            case EWeaponId::EWeaponId_Vega:
-//                weaponIcon = Icons::Weapon::vega;
-//                weaponName = "Vega";
-//                break;
-//            case EWeaponId::EWeaponId_MG7:
-//                weaponIcon = Icons::Weapon::MG7;
-//                weaponName = "MG7";
-//                break;
-//            case EWeaponId::EWeaponId_UZI:
-//                weaponIcon = Icons::Weapon::UZI;
-//                weaponName = "UZI";
-//                break;
-//        }
+
 //
 //        std::string distance = std::to_string(static_cast<int>(playerPosition.distanceMeters(characterPosition))) + "m";
 //        ImVec2 weaponTextSize = Overlay::DroidSans->CalcTextSizeA(14, FLT_MAX, 0.0f, weaponName.c_str());
@@ -441,102 +560,10 @@ void render() {
 ////        }
     }
 
-//    for (const auto &entity: playerList) {
-//        if (!entity.skeletonMesh || !entity.state || !entity.acknowledgePawn)
-//            continue;
-//        auto playerLocation = PlayerLocation(entity);
-//        //auto closestEnemyLocation = PlayerLocation(findClosestEnemyToCrosshair(true));
-//
-//
-//
-//
-//
-//        auto playerRoot = read<DWORD_PTR>(entity.acknowledgePawn + offsets::pRootComponent);
-//        auto componentVelocity = read<FVector>(playerRoot + 0x0140);
-//        auto predictedPosition = target_prediction(
-//                playerLocation.headPosition,
-//                componentVelocity,
-//                playerLocation.distance(),
-//                ammoConfig.initSpeed,
-//                -980
-//        );
-//        auto predictedPosition2 = targetCorrection(
-//                ammoConfig.initSpeed,
-//                worldSettings.worldGravityZ,
-//                playerLocation.distance(),
-//                playerLocation.headPosition,
-//                componentVelocity
-//        );
-//        auto predictedScreenPosition = pointers.player.projectWorldToScreen( predictedPosition, screenSize);
-//        auto predictedScreenPosition2 = pointers.player.projectWorldToScreen( predictedPosition2, screenSize);
-//
-//        //drawCircleFilled(playerLocation.headScreenPosition.x, playerLocation.headScreenPosition.y, 4, ImColor(255, 255, 0), 30);
-//        drawCircleFilled(predictedScreenPosition.x, predictedScreenPosition.y, 2, ImColor(255, 0, 0), 30);
-//        drawCircleFilled(predictedScreenPosition2.x, predictedScreenPosition2.y, 2, ImColor(255, 0, 255), 30);
-//
-//
-//        drawText(componentVelocity.debug(), playerLocation.headScreenPosition.x, playerLocation.headScreenPosition.y, 12, ImColor(255, 255, 255), true);
-//
-//
-//        auto playerTop = playerLocation.headScreenPosition;
-//        auto playerBottom = playerLocation.rootScreenPosition;
-//        auto playerHeight = abs(playerTop.y - playerBottom.y);
-//        auto playerWidth = playerHeight * 0.65f;
-//        auto distanceToPlayer = playerLocation.distanceMeters();
-//
-//
-//        auto characterID = read<int32_t>(entity.state + offsets::spsCharacterId);
-//        auto skinId = read<int32_t>(entity.state + offsets::spsSkinId);
-//        auto playerName = read<FString>(entity.state + offsets::spsNickName);
-//        auto playerHealth = read<float>(entity.state + offsets::spsCurrentHealth);
-//        auto playerMaxHealth = read<float>(entity.state + offsets::spsMaxHealth);
-//        auto playerId = read<int>(entity.state + 0x022C);
-//        auto localPlayerId = read<int>(pointers.localPlayerState + 0x022C);
-//        auto previousLocation = read<FRotator>(entity.state + 0x0F20);
-//
-//
-//        if (localPlayerId == playerId)
-//            continue;
-//        if (playerHealth == 0 || playerMaxHealth == 0)
-//            continue;
-//
-//        auto teamInfo = read<DWORD_PTR>(entity.state + 0x0C48);
-//        auto localTeamInfo = read<DWORD_PTR>(pointers.localPlayerState + 0x0C48);
-//        auto isBot = read<FString>(entity.state + offsets::spsSolarPlayerID).toString().starts_with("000-");
-//
-//
-//        FVector startPoint = visibleRadius(playerBottom, aimbotFov);
-//        std::string playerHint = "";
-//        if (isInRadius(screenCenter, playerBottom, aimbotFov)) {
-//            playerHint = (isBot ? "BOT" : playerName.toString().substr(0, playerName.toString().find('#'))) + " [" + std::to_string(static_cast<int>(distanceToPlayer)) + "m]";
-//        } else {
-//            playerHint = "[" + std::to_string(static_cast<int>(distanceToPlayer)) + "m]";
-//        }
-//        FVector textStartPoint = visibleRadius(playerBottom, aimbotFov - 5);
-//        ImColor lineColor = ImColor(102, 178, 255);
-//        if (isBot)
-//            lineColor = ImColor(255, 51, 51);
-//        if (teamInfo == localTeamInfo)
-//            lineColor = ImColor(178, 255, 102);
-//
-//
-//        if (isInRadius(screenCenter, playerBottom, aimbotFov - 25)) {
-//            drawText(playerHint, playerBottom.x, playerBottom.y, 14.0f, lineColor, true);
-//        } else {
-//            drawText(playerHint, textStartPoint.x, textStartPoint.y, 14.0f, lineColor, true);
-//        }
-//        if (isInRadius(screenCenter, playerBottom, aimbotFov)) {
-//            drawText(playerHint, playerBottom.x, playerBottom.y, 14.0f, lineColor, true);
-//            drawCircleFilled(playerBottom.x, playerBottom.y, 2.0f, lineColor, 30);
-//        } else {
-//            drawLine(startPoint.x, startPoint.y, playerBottom.x, playerBottom.y, ImColor(0, 0, 0), 1.5f);
-//            drawLine(startPoint.x, startPoint.y, playerBottom.x, playerBottom.y, lineColor, 1.0f);
-//            drawCircleFilled(startPoint.x, startPoint.y, 2.0f, lineColor, 30);
-//            drawCircleFilled(playerBottom.x, playerBottom.y, 2.0f, lineColor, 30);
-//        }
-//
-//
-//    }
+
+    drawThreadDelay = local_time::milliseconds() - start;
+    std::string diagnosticText = "Read/Render - [" + std::to_string(readThreadDelay) + " ms / " + std::to_string(drawThreadDelay) + " ms]";
+    drawText(diagnosticText, ImVec2(0, 0), ImColor(255, 255, 255), 14, false, true, ImColor(23, 23, 23, 120), 16, true, 8);
 }
 
 

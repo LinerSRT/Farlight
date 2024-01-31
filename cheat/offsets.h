@@ -1,10 +1,16 @@
 
 #include <Windows.h>
-
+#define STEAM
 namespace offsets {
+#ifdef STEAM
     DWORD gWorld = 0x7022078; // Old: 0x7033488
     DWORD gNames = 0x6EA1840; // Old: 0x6EBB780
     DWORD gObject = 0x6ED17A0; // Old: 0x6ED40E0
+#elifdef STANDALONE
+    DWORD gWorld = 0x70220B8; // Old: 0x7033488
+    DWORD gNames = 0x6EA1880; // Old: 0x6EBB780
+    DWORD gObject = 0x6ED17E0; // Old: 0x6ED40E0
+#endif
 
 
     /// Class /Script/CoreUObject.ObjectArray
@@ -61,6 +67,8 @@ namespace offsets {
     /// Class /Script/Engine.SceneComponent
     DWORD scRelativeLocation = 0x011C; //FVector
     DWORD scRelativeRotation = 0x0128; //FRotator
+    DWORD scRelativeScale3D = 0x0134; //FRotator
+    DWORD scComponentVelocity = 0x0140; //FRotator
 
     /// Class /Script/Engine.PlayerController
     DWORD pcPlayer = 0x02B8; //UPlayer
@@ -77,7 +85,7 @@ namespace offsets {
 
     /// Class /Script/Engine.PlayerCameraManager
     DWORD pcmTransformComponent = 0x0230; //USceneComponent
-    DWORD pcmCameraCache = 0x1C70; //FCameraCacheEntry
+    DWORD pcmCameraCache = 0x02A0; //FCameraCacheEntry
     DWORD pcmCameraCachePrivate = 0x1C70; //FCameraCacheEntry
 
     /// Class /Script/Solarland.SolarPlayerState

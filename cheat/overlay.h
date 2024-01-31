@@ -12,6 +12,7 @@
 #include <functional>
 #include <array>
 #include <d3dx9.h>
+#include "../imgui/font_awesome.h"
 #include "../imgui/imgui.h"
 #include "../imgui/imgui_impl_dx9.h"
 #include "../imgui/imgui_impl_win32.h"
@@ -28,6 +29,27 @@ typedef struct Farlight {
     int centerY{};
 } Farlight;
 
+enum TextGravity {
+    CENTER,
+    TOP,
+    BOTTOM,
+    START,
+    END,
+    TOP_START,
+    TOP_END,
+    BOTTOM_START,
+    BOTTOM_END
+};
+typedef struct TextDrawOptions {
+    ImColor color = ImColor(255, 255, 255);
+    TextGravity gravity = TOP_START;
+    float fontSize = 14;
+    bool withBackground = false;
+    ImColor backgroundColor = ImColor(23, 23, 23, 120);
+    float padding = 8;
+    float cornerRadius = 0;
+} TextOptions;
+
 namespace D3D {
     IDirect3D9Ex *d3d = nullptr;
     IDirect3DDevice9Ex *device = nullptr;
@@ -36,7 +58,7 @@ namespace D3D {
     MSG Message = {nullptr};
 }
 
-namespace Icons{
+namespace Icons {
     namespace Weapon {
         PDIRECT3DTEXTURE9 AK = nullptr;
         PDIRECT3DTEXTURE9 dikobraz = nullptr;
@@ -73,29 +95,29 @@ namespace Icons{
         return true;
     }
 
-    void loadIcons(){
-        loadTextureFromFile(R"(resources/ak.png)",  &Weapon::AK);
-        loadTextureFromFile(R"(resources/dikobraz.png)",  &Weapon::dikobraz);
-        loadTextureFromFile(R"(resources/generator.png)",  &Weapon::generator);
-        loadTextureFromFile(R"(resources/invader.png)",  &Weapon::invader);
-        loadTextureFromFile(R"(resources/jupiter.png)",  &Weapon::jupiter);
-        loadTextureFromFile(R"(resources/m4a.png)",  &Weapon::M4A);
-        loadTextureFromFile(R"(resources/madrat.png)",  &Weapon::madRat);
-        loadTextureFromFile(R"(resources/vss.png)",  &Weapon::vss);
-        loadTextureFromFile(R"(resources/mg7.png)",  &Weapon::MG7);
-        loadTextureFromFile(R"(resources/hound.png)",  &Weapon::hound);
-        loadTextureFromFile(R"(resources/whitedwarf.png)",  &Weapon::whiteDwarf);
-        loadTextureFromFile(R"(resources/bar95.png)",  &Weapon::bar95);
-        loadTextureFromFile(R"(resources/defender.png)",  &Weapon::defender);
-        loadTextureFromFile(R"(resources/mf18.png)",  &Weapon::MF18);
-        loadTextureFromFile(R"(resources/ump99.png)",  &Weapon::UMP99);
-        loadTextureFromFile(R"(resources/stellarwind.png)",  &Weapon::stellarWind);
-        loadTextureFromFile(R"(resources/fanatic.png)",  &Weapon::fanatic);
-        loadTextureFromFile(R"(resources/madrabbit.png)",  &Weapon::madRabbit);
-        loadTextureFromFile(R"(resources/rhino.png)",  &Weapon::rhino);
-        loadTextureFromFile(R"(resources/ancientstar.png)",  &Weapon::vega);
-        loadTextureFromFile(R"(resources/uzi.png)",  &Weapon::UZI);
-        loadTextureFromFile(R"(resources/arm.png)",  &Weapon::arm);
+    void loadIcons() {
+        loadTextureFromFile(R"(resources/ak.png)", &Weapon::AK);
+        loadTextureFromFile(R"(resources/dikobraz.png)", &Weapon::dikobraz);
+        loadTextureFromFile(R"(resources/generator.png)", &Weapon::generator);
+        loadTextureFromFile(R"(resources/invader.png)", &Weapon::invader);
+        loadTextureFromFile(R"(resources/jupiter.png)", &Weapon::jupiter);
+        loadTextureFromFile(R"(resources/m4a.png)", &Weapon::M4A);
+        loadTextureFromFile(R"(resources/madrat.png)", &Weapon::madRat);
+        loadTextureFromFile(R"(resources/vss.png)", &Weapon::vss);
+        loadTextureFromFile(R"(resources/mg7.png)", &Weapon::MG7);
+        loadTextureFromFile(R"(resources/hound.png)", &Weapon::hound);
+        loadTextureFromFile(R"(resources/whitedwarf.png)", &Weapon::whiteDwarf);
+        loadTextureFromFile(R"(resources/bar95.png)", &Weapon::bar95);
+        loadTextureFromFile(R"(resources/defender.png)", &Weapon::defender);
+        loadTextureFromFile(R"(resources/mf18.png)", &Weapon::MF18);
+        loadTextureFromFile(R"(resources/ump99.png)", &Weapon::UMP99);
+        loadTextureFromFile(R"(resources/stellarwind.png)", &Weapon::stellarWind);
+        loadTextureFromFile(R"(resources/fanatic.png)", &Weapon::fanatic);
+        loadTextureFromFile(R"(resources/madrabbit.png)", &Weapon::madRabbit);
+        loadTextureFromFile(R"(resources/rhino.png)", &Weapon::rhino);
+        loadTextureFromFile(R"(resources/ancientstar.png)", &Weapon::vega);
+        loadTextureFromFile(R"(resources/uzi.png)", &Weapon::UZI);
+        loadTextureFromFile(R"(resources/arm.png)", &Weapon::arm);
     }
 }
 
@@ -109,9 +131,8 @@ namespace Overlay {
     int width = 600;
     int height = 500;
     bool show = false;
-    ImFont *DroidSans, *DefaultFont;
+    ImFont *DroidSans, *DefaultFont, *Icons;
 }
-
 
 
 bool loadTextureFromFile(const char *filename, PDIRECT3DTEXTURE9 *out_texture, float *out_width, float *out_height) {
@@ -265,7 +286,6 @@ bool directInit() {
     Icons::loadIcons();
 
 
-
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.WantCaptureMouse || io.WantTextInput || io.WantCaptureKeyboard;
@@ -332,6 +352,11 @@ void setupOverlay() {
     ImGuiIO &io = ImGui::GetIO();
     Overlay::DefaultFont = io.Fonts->AddFontDefault();
     Overlay::DroidSans = io.Fonts->AddFontFromFileTTF(R"(DroidSans.ttf)", 16.0f, nullptr, ImGui::GetIO().Fonts->GetGlyphRangesCyrillic());
+    ImFontConfig config;
+    config.MergeMode = true;
+    config.GlyphMinAdvanceX = 13.0f;
+    static const ImWchar icon_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
+    Overlay::Icons = io.Fonts->AddFontFromFileTTF(R"(resources/fonts/fontawesome-webfont.ttf)", 13.0f, &config, icon_ranges);
     io.Fonts->Build();
 }
 
@@ -370,9 +395,29 @@ auto drawBox(float x, float y, float w, float h, ImColor color) -> VOID {
     drawLine(x, y + h, x + w, y + h, color, 1.3f);   // bottom
 }
 
+auto drawBox(float x, float y, float w, float h, ImColor color, float size) -> VOID {
+    float sideSizeH = (w / 2) * size;
+    float sideSizeV = (h / 2) * size;
+    drawLine(x, y, x + sideSizeH, y, color, 1.3f);
+    drawLine(x + w - sideSizeH, y, x + w, y, color, 1.3f);
+    drawLine(x + w, y + sideSizeV, x + w, y, color, 1.3f);
+    drawLine(x + w, y + h - sideSizeV, x + w, y + h, color, 1.3f);
+    drawLine(x + w, y + h, x + w - sideSizeH, y + h, color, 1.3f);
+    drawLine(x + sideSizeH, y + h, x, y + h, color, 1.3f);
+    drawLine(x, y + h, x, y + h - sideSizeV, color, 1.3f);
+    drawLine(x, y, x, y + sideSizeV, color, 1.3f);
+
+
+}
+
 auto drawRectFilled(float x0, float y0, float x1, float y1, ImColor color, float rounding, int rounding_corners_flags) -> VOID {
     auto vList = ImGui::GetForegroundDrawList();
     vList->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1), color, rounding, rounding_corners_flags);
+}
+
+auto drawRectFilled(float x0, float y0, float x1, float y1, ImColor color) -> VOID {
+    auto vList = ImGui::GetForegroundDrawList();
+    vList->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1), color, 0, ImDrawFlags_RoundCornersNone);
 }
 
 auto tabButton(const char *label, int *index, int val, bool sameLine) -> VOID {
@@ -413,6 +458,25 @@ auto drawText(const std::string &text, float xX, float yY, float size, ImU32 col
     }
     ImGui::PopFont();
 }
+
+auto drawIcon(const std::string &text, float xX, float yY, ImU32 color, float size) -> VOID {
+    ImVec2 pos = ImVec2(xX, yY);
+    ImGui::PushFont(Overlay::Icons);
+    std::stringstream stream(text);
+    std::string line;
+    float y = 0.0f;
+    int index = 0;
+    while (std::getline(stream, line)) {
+        ImVec2 textSize = Overlay::Icons->CalcTextSizeA(size, FLT_MAX, 0.0f, line.c_str());
+        ImGui::GetForegroundDrawList()->AddText(Overlay::Icons, size, ImVec2((pos.x - textSize.x / 2.0f) + 1, (pos.y + textSize.y * index) + 1), ImGui::GetColorU32(ImVec4(0, 0, 0, 255)), line.c_str());
+        ImGui::GetForegroundDrawList()->AddText(Overlay::Icons, size, ImVec2((pos.x - textSize.x / 2.0f) - 1, (pos.y + textSize.y * index) - 1), ImGui::GetColorU32(ImVec4(0, 0, 0, 255)), line.c_str());
+        ImGui::GetForegroundDrawList()->AddText(Overlay::Icons, size, ImVec2(pos.x - textSize.x / 2.0f, pos.y + textSize.y * index), ImGui::GetColorU32(color), line.c_str());
+        y = pos.y + textSize.y * ((float) index + 1.0f);
+        index++;
+    }
+    ImGui::PopFont();
+}
+
 
 auto drawCircle(float xX, float yY, const float radius, ImColor color, const FLOAT lineWidth) -> VOID {
     auto vList = ImGui::GetForegroundDrawList();
@@ -476,19 +540,87 @@ void drawImage(PDIRECT3DTEXTURE9 image, float x, float y, float w, float h, bool
     );
 }
 
-//void drawImage(const char* filename, float x, float y, bool center) {
-//    float w = 0;
-//    float h = 0;
-//    PDIRECT3DTEXTURE9 image = nullptr;
-//    bool loaded = loadTextureFromFile(filename, &image, &w, &h);
-//    if (loaded)
-//        drawImage(image, x, y, w, h, center);
-//}
-//
-//void drawImage(const char* filename, float x, float y, float w, float h, bool center) {
-//    PDIRECT3DTEXTURE9 image = nullptr;
-//    bool loaded = loadTextureFromFile(filename, &image);
-//    if (loaded)
-//        drawImage(image, x, y, w, h, center);
-//}
+
+ImVec2 getTextSize(const std::string &text, float fontSize) {
+    return Overlay::DroidSans->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, text.c_str());
+}
+
+ImVec4 drawText(
+        const std::string &text,
+        ImVec2 position,
+        ImColor color = ImColor(255, 255, 255),
+        float fontSize = 14,
+        bool center = false,
+        bool background = false,
+        ImColor backgroundColor = ImColor(23, 23, 23, 120),
+        float padding = 0.0f,
+        bool rounded = false,
+        float cornerRadius = 8.0f) {
+    auto textSize = getTextSize(text, fontSize);
+    ImVec2 drawBackgroundPosition = ImVec2(
+            center ? (position.x) - (textSize.x / 2) : position.x,
+            center ? (position.y) - (textSize.y / 2) : position.y
+    );
+    ImVec2 drawTextPosition = ImVec2(
+            drawBackgroundPosition.x + padding / 2,
+            drawBackgroundPosition.y + padding / 2
+    );
+    if (background) {
+
+        if (rounded) {
+            drawRectFilled(drawBackgroundPosition.x, drawBackgroundPosition.y, drawBackgroundPosition.x + textSize.x + padding, drawBackgroundPosition.y + textSize.y + padding, backgroundColor, cornerRadius, ImDrawFlags_RoundCornersAll);
+        } else {
+            drawRectFilled(drawBackgroundPosition.x, drawBackgroundPosition.y, drawBackgroundPosition.x + textSize.x + padding, drawBackgroundPosition.y + textSize.y + padding, backgroundColor);
+        }
+    }
+    drawText(text, drawTextPosition.x, drawTextPosition.y, fontSize, color, false);
+    return {drawBackgroundPosition.x, drawBackgroundPosition.y, drawBackgroundPosition.x + textSize.x + padding, drawBackgroundPosition.y + textSize.y + padding};
+}
+
+ImVec4 drawText(const std::string &text, ImVec2 position, TextOptions textOptions) {
+    auto textSize = getTextSize(text, textOptions.fontSize);
+    auto width = textSize.x + textOptions.padding;
+    auto height = textSize.y + textOptions.padding;
+    ImVec2 backgroundStart;
+    switch (textOptions.gravity) {
+        case CENTER:
+            backgroundStart = ImVec2(position.x - width / 2, position.y - height / 2);
+            break;
+        case TOP:
+            backgroundStart = ImVec2(position.x - width / 2, position.y - height);
+            break;
+        case BOTTOM:
+            backgroundStart = ImVec2(position.x - width / 2, position.y + height);
+            break;
+        case START:
+            backgroundStart = ImVec2(position.x - width, position.y - height / 2);
+            break;
+        case END:
+            backgroundStart = ImVec2(position.x + width, position.y - height / 2);
+            break;
+        case TOP_START:
+            backgroundStart = ImVec2(position.x - width, position.y - height);
+            break;
+        case TOP_END:
+            backgroundStart = ImVec2(position.x + width, position.y - height);
+            break;
+        case BOTTOM_START:
+            backgroundStart = ImVec2(position.x - width, position.y + height);
+            break;
+        case BOTTOM_END:
+            backgroundStart = ImVec2(position.x + width, position.y + height);
+            break;
+    }
+    ImVec2 textStart = ImVec2(backgroundStart.x + textOptions.padding / 2, backgroundStart.y + textOptions.padding / 2);
+
+    if (textOptions.withBackground) {
+        if (textOptions.cornerRadius > 0) {
+            drawRectFilled(backgroundStart.x, backgroundStart.y, backgroundStart.x + width, backgroundStart.y + height, textOptions.backgroundColor, textOptions.cornerRadius, ImDrawFlags_RoundCornersAll);
+        } else {
+            drawRectFilled(backgroundStart.x, backgroundStart.y, backgroundStart.x + width, backgroundStart.y + height, textOptions.backgroundColor);
+        }
+    }
+    drawText(text, textStart.x, textStart.y, textOptions.fontSize, textOptions.color, false);
+    return {backgroundStart.x, backgroundStart.y, backgroundStart.x + width, backgroundStart.y + height};
+}
 
