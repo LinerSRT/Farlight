@@ -60,6 +60,8 @@ public:
     static INT32 find_process(LPCTSTR process_name);
 
     static bool read_raw(uint64_t address, void *buffer, size_t size);
+
+    static bool readBoolean(uint64_t address, uint8_t byteMask);
 };
 
 

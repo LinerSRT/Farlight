@@ -11,6 +11,10 @@ bool driver::find_driver() {
     return true;
 }
 
+bool driver::readBoolean(uint64_t address, uint8_t byteMask) {
+    return (read<uint8_t>(address) & byteMask) != 0;
+}
+
 void driver::read_virtual_memory(PVOID address, PVOID buffer, DWORD size) {
     t_virtual arguments = { 0 };
 
