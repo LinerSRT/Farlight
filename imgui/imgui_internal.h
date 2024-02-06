@@ -868,7 +868,7 @@ enum ImGuiInputTextFlagsPrivate_
 // Extend ImGuiButtonFlags_
 enum ImGuiButtonFlagsPrivate_
 {
-    ImGuiButtonFlags_PressedOnClick         = 1 << 4,   // return true on click (mouse down event)
+    ImGuiButtonFlags_PressedOnClick         = 1 << 4,   // return true on click (input down event)
     ImGuiButtonFlags_PressedOnClickRelease  = 1 << 5,   // [Default] return true on click + release on same item <-- this is what the majority of Button are using
     ImGuiButtonFlags_PressedOnClickReleaseAnywhere = 1 << 6, // return true on click + release even if the release event is not done while hovering the item
     ImGuiButtonFlags_PressedOnRelease       = 1 << 7,   // return true on release (default requires click+release)
@@ -880,12 +880,12 @@ enum ImGuiButtonFlagsPrivate_
     ImGuiButtonFlags_DontClosePopups        = 1 << 13,  // disable automatically closing parent popup on press // [UNUSED]
     //ImGuiButtonFlags_Disabled             = 1 << 14,  // disable interactions -> use BeginDisabled() or ImGuiItemFlags_Disabled
     ImGuiButtonFlags_AlignTextBaseLine      = 1 << 15,  // vertically align button to match text baseline - ButtonEx() only // FIXME: Should be removed and handled by SmallButton(), not possible currently because of DC.CursorPosPrevLine
-    ImGuiButtonFlags_NoKeyModifiers         = 1 << 16,  // disable mouse interaction if a key modifier is held
-    ImGuiButtonFlags_NoHoldingActiveId      = 1 << 17,  // don't set ActiveId while holding the mouse (ImGuiButtonFlags_PressedOnClick only)
+    ImGuiButtonFlags_NoKeyModifiers         = 1 << 16,  // disable input interaction if a key modifier is held
+    ImGuiButtonFlags_NoHoldingActiveId      = 1 << 17,  // don't set ActiveId while holding the input (ImGuiButtonFlags_PressedOnClick only)
     ImGuiButtonFlags_NoNavFocus             = 1 << 18,  // don't override navigation focus when activated (FIXME: this is essentially used everytime an item uses ImGuiItemFlags_NoNav, but because legacy specs don't requires LastItemData to be set ButtonBehavior(), we can't poll g.LastItemData.InFlags)
     ImGuiButtonFlags_NoHoveredOnFocus       = 1 << 19,  // don't report as hovered when nav focus is on this item
-    ImGuiButtonFlags_NoSetKeyOwner          = 1 << 20,  // don't set key/input owner on the initial click (note: mouse buttons are keys! often, the key in question will be ImGuiKey_MouseLeft!)
-    ImGuiButtonFlags_NoTestKeyOwner         = 1 << 21,  // don't test key/input owner when polling the key (note: mouse buttons are keys! often, the key in question will be ImGuiKey_MouseLeft!)
+    ImGuiButtonFlags_NoSetKeyOwner          = 1 << 20,  // don't set key/input owner on the initial click (note: input buttons are keys! often, the key in question will be ImGuiKey_MouseLeft!)
+    ImGuiButtonFlags_NoTestKeyOwner         = 1 << 21,  // don't test key/input owner when polling the key (note: input buttons are keys! often, the key in question will be ImGuiKey_MouseLeft!)
     ImGuiButtonFlags_PressedOnMask_         = ImGuiButtonFlags_PressedOnClick | ImGuiButtonFlags_PressedOnClickRelease | ImGuiButtonFlags_PressedOnClickReleaseAnywhere | ImGuiButtonFlags_PressedOnRelease | ImGuiButtonFlags_PressedOnDoubleClick | ImGuiButtonFlags_PressedOnDragDropHold,
     ImGuiButtonFlags_PressedOnDefault_      = ImGuiButtonFlags_PressedOnClickRelease,
 };
@@ -912,9 +912,9 @@ enum ImGuiSelectableFlagsPrivate_
     ImGuiSelectableFlags_SelectOnClick          = 1 << 22,  // Override button behavior to react on Click (default is Click+Release)
     ImGuiSelectableFlags_SelectOnRelease        = 1 << 23,  // Override button behavior to react on Release (default is Click+Release)
     ImGuiSelectableFlags_SpanAvailWidth         = 1 << 24,  // Span all avail width even if we declared less for layout purpose. FIXME: We may be able to remove this (added in 6251d379, 2bcafc86 for menus)
-    ImGuiSelectableFlags_SetNavIdOnHover        = 1 << 25,  // Set Nav/Focus ID on mouse hover (used by MenuItem)
+    ImGuiSelectableFlags_SetNavIdOnHover        = 1 << 25,  // Set Nav/Focus ID on input hover (used by MenuItem)
     ImGuiSelectableFlags_NoPadWithHalfSpacing   = 1 << 26,  // Disable padding each side with ItemSpacing * 0.5f
-    ImGuiSelectableFlags_NoSetKeyOwner          = 1 << 27,  // Don't set key/input owner on the initial click (note: mouse buttons are keys! often, the key in question will be ImGuiKey_MouseLeft!)
+    ImGuiSelectableFlags_NoSetKeyOwner          = 1 << 27,  // Don't set key/input owner on the initial click (note: input buttons are keys! often, the key in question will be ImGuiKey_MouseLeft!)
 };
 
 // Extend ImGuiTreeNodeFlags_
@@ -1113,7 +1113,7 @@ struct IMGUI_API ImGuiInputTextState
     ImStb::STB_TexteditState Stb;                   // state for stb_textedit.h
     float                   CursorAnim;             // timer for cursor blink, reset on every user action so the cursor reappears immediately
     bool                    CursorFollow;           // set when we want scrolling to follow the current cursor position (not always!)
-    bool                    SelectedAllMouseLock;   // after a double-click to select all, we ignore further mouse drags to update selection
+    bool                    SelectedAllMouseLock;   // after a double-click to select all, we ignore further input drags to update selection
     bool                    Edited;                 // edited this frame
     ImGuiInputTextFlags     Flags;                  // copy of InputText() flags. may be used to check if e.g. ImGuiInputTextFlags_Password is set.
 
@@ -1144,8 +1144,8 @@ struct ImGuiPopupData
     int                 ParentNavLayer; // Resolved on BeginPopup(). Actually a ImGuiNavLayer type (declared down below), initialized to -1 which is not part of an enum, but serves well-enough as "not any of layers" value
     int                 OpenFrameCount; // Set on OpenPopup()
     ImGuiID             OpenParentId;   // Set on OpenPopup(), we need this to differentiate multiple menu sets from each others (e.g. inside menu bar vs loose menu items)
-    ImVec2              OpenPopupPos;   // Set on OpenPopup(), preferred popup position (typically == OpenMousePos when using mouse)
-    ImVec2              OpenMousePos;   // Set on OpenPopup(), copy of mouse position at the time of opening popup
+    ImVec2              OpenPopupPos;   // Set on OpenPopup(), preferred popup position (typically == OpenMousePos when using input)
+    ImVec2              OpenMousePos;   // Set on OpenPopup(), copy of input position at the time of opening popup
 
     ImGuiPopupData()    { memset(this, 0, sizeof(*this)); ParentNavLayer = OpenFrameCount = -1; }
 };
@@ -1521,7 +1521,7 @@ enum ImGuiNavHighlightFlags_
     ImGuiNavHighlightFlags_None             = 0,
     ImGuiNavHighlightFlags_TypeDefault      = 1 << 0,
     ImGuiNavHighlightFlags_TypeThin         = 1 << 1,
-    ImGuiNavHighlightFlags_AlwaysDraw       = 1 << 2,       // Draw rectangular highlight if (g.NavId == id) _even_ when using the mouse.
+    ImGuiNavHighlightFlags_AlwaysDraw       = 1 << 2,       // Draw rectangular highlight if (g.NavId == id) _even_ when using the input.
     ImGuiNavHighlightFlags_NoRounding       = 1 << 3,
 };
 
@@ -1543,7 +1543,7 @@ enum ImGuiNavMoveFlags_
     ImGuiNavMoveFlags_IsPageMove            = 1 << 11,  // Identify a PageDown/PageUp request.
     ImGuiNavMoveFlags_Activate              = 1 << 12,  // Activate/select target item.
     ImGuiNavMoveFlags_NoSelect              = 1 << 13,  // Don't trigger selection by not setting g.NavJustMovedTo
-    ImGuiNavMoveFlags_NoSetNavHighlight     = 1 << 14,  // Do not alter the visible state of keyboard vs mouse nav highlight
+    ImGuiNavMoveFlags_NoSetNavHighlight     = 1 << 14,  // Do not alter the visible state of keyboard vs input nav highlight
 };
 
 enum ImGuiNavLayer
@@ -1555,10 +1555,10 @@ enum ImGuiNavLayer
 
 struct ImGuiNavItemData
 {
-    ImGuiWindow*        Window;         // Init,Move    // Best candidate window (result->ItemWindow->RootWindowForNav == request->Window)
-    ImGuiID             ID;             // Init,Move    // Best candidate item ID
-    ImGuiID             FocusScopeId;   // Init,Move    // Best candidate focus scope ID
-    ImRect              RectRel;        // Init,Move    // Best candidate bounding box in window relative space
+    ImGuiWindow*        Window;         // init,Move    // Best candidate window (result->ItemWindow->RootWindowForNav == request->Window)
+    ImGuiID             ID;             // init,Move    // Best candidate item ID
+    ImGuiID             FocusScopeId;   // init,Move    // Best candidate focus scope ID
+    ImRect              RectRel;        // init,Move    // Best candidate bounding box in window relative space
     ImGuiItemFlags      InFlags;        // ????,Move    // Best candidate item flags
     ImGuiSelectionUserData SelectionUserData;//I+Mov    // Best candidate SetNextItemSelectionData() value.
     float               DistBox;        //      Move    // Best candidate box distance to current NavId
@@ -1895,7 +1895,7 @@ struct ImGuiContext
 
     // Inputs
     ImVector<ImGuiInputEvent> InputEventsQueue;                 // Input events which will be trickled/written into IO structure.
-    ImVector<ImGuiInputEvent> InputEventsTrail;                 // Past input events processed in NewFrame(). This is to allow domain-specific application to access e.g mouse/pen trail.
+    ImVector<ImGuiInputEvent> InputEventsTrail;                 // Past input events processed in NewFrame(). This is to allow domain-specific application to access e.g input/pen trail.
     ImGuiMouseSource        InputEventsNextMouseSource;
     ImU32                   InputEventsNextEventId;
 
@@ -1909,10 +1909,10 @@ struct ImGuiContext
     ImVec2                  WindowsHoverPadding;                // Padding around resizable windows for which hovering on counts as hovering the window == ImMax(style.TouchExtraPadding, WINDOWS_HOVER_PADDING)
     ImGuiID                 DebugBreakInWindow;                 // Set to break in Begin() call.
     ImGuiWindow*            CurrentWindow;                      // Window being drawn into
-    ImGuiWindow*            HoveredWindow;                      // Window the mouse is hovering. Will typically catch mouse inputs.
+    ImGuiWindow*            HoveredWindow;                      // Window the input is hovering. Will typically catch input inputs.
     ImGuiWindow*            HoveredWindowUnderMovingWindow;     // Hovered window ignoring MovingWindow. Only set if MovingWindow is set.
     ImGuiWindow*            MovingWindow;                       // Track the window we clicked on (in order to preserve focus). The actual window that is moved is generally MovingWindow->RootWindow.
-    ImGuiWindow*            WheelingWindow;                     // Track the window we started mouse-wheeling on. Until a timer elapse or mouse has moved, generally keep scrolling the same window even if during the course of scrolling the mouse ends up hovering a child window.
+    ImGuiWindow*            WheelingWindow;                     // Track the window we started input-wheeling on. Until a timer elapse or input has moved, generally keep scrolling the same window even if during the course of scrolling the input ends up hovering a child window.
     ImVec2                  WheelingWindowRefMousePos;
     int                     WheelingWindowStartFrame;           // This may be set one frame before WheelingWindow is != NULL
     int                     WheelingWindowScrolledFrame;
@@ -1954,7 +1954,7 @@ struct ImGuiContext
     // - Routing is requested ahead of time for a given chord (Key + Mods) and granted in NewFrame().
     double                  LastKeyModsChangeTime;              // Record the last time key mods changed (affect repeat delay when using shortcut logic)
     double                  LastKeyModsChangeFromNoneTime;      // Record the last time key mods changed away from being 0 (affect repeat delay when using shortcut logic)
-    double                  LastKeyboardKeyPressTime;           // Record the last time a keyboard key (ignore mouse/gamepad ones) was pressed.
+    double                  LastKeyboardKeyPressTime;           // Record the last time a keyboard key (ignore input/gamepad ones) was pressed.
     ImGuiKeyOwnerData       KeysOwnerData[ImGuiKey_NamedKey_COUNT];
     ImGuiKeyRoutingTable    KeysRoutingTable;
     ImU32                   ActiveIdUsingNavDirMask;            // Active widget will want to read those nav move requests (e.g. can activate a button and move away from it)
@@ -2007,15 +2007,15 @@ struct ImGuiContext
     ImGuiNavLayer           NavLayer;                           // Layer we are navigating on. For now the system is hard-coded for 0=main contents and 1=menu/title bar, may expose layers later.
     ImGuiSelectionUserData  NavLastValidSelectionUserData;      // Last valid data passed to SetNextItemSelectionUser(), or -1. For current window. Not reset when focusing an item that doesn't have selection data.
     bool                    NavIdIsAlive;                       // Nav widget has been seen this frame ~~ NavRectRel is valid
-    bool                    NavMousePosDirty;                   // When set we will update mouse position if (io.ConfigFlags & ImGuiConfigFlags_NavEnableSetMousePos) if set (NB: this not enabled by default)
-    bool                    NavDisableHighlight;                // When user starts using mouse, we hide gamepad/keyboard highlight (NB: but they are still available, which is why NavDisableHighlight isn't always != NavDisableMouseHover)
-    bool                    NavDisableMouseHover;               // When user starts using gamepad/keyboard, we hide mouse hovering highlight until mouse is touched again.
+    bool                    NavMousePosDirty;                   // When set we will update input position if (io.ConfigFlags & ImGuiConfigFlags_NavEnableSetMousePos) if set (NB: this not enabled by default)
+    bool                    NavDisableHighlight;                // When user starts using input, we hide gamepad/keyboard highlight (NB: but they are still available, which is why NavDisableHighlight isn't always != NavDisableMouseHover)
+    bool                    NavDisableMouseHover;               // When user starts using gamepad/keyboard, we hide input hovering highlight until input is touched again.
 
-    // Navigation: Init & Move Requests
+    // Navigation: init & Move Requests
     bool                    NavAnyRequest;                      // ~~ NavMoveRequest || NavInitRequest this is to perform early out in ItemAdd()
-    bool                    NavInitRequest;                     // Init request for appearing window to select first item
+    bool                    NavInitRequest;                     // init request for appearing window to select first item
     bool                    NavInitRequestFromMove;
-    ImGuiNavItemData        NavInitResult;                      // Init request result (first item of the window, or one for which SetItemDefaultFocus() was called)
+    ImGuiNavItemData        NavInitResult;                      // init request result (first item of the window, or one for which SetItemDefaultFocus() was called)
     bool                    NavMoveSubmitted;                   // Move request submitted, will process result on next NewFrame()
     bool                    NavMoveScoringItems;                // Move request submitted, still scoring incoming items
     bool                    NavMoveForwardToNextFrame;
@@ -2099,7 +2099,7 @@ struct ImGuiContext
 
     // Mouse state
     ImGuiMouseCursor        MouseCursor;
-    float                   MouseStationaryTimer;               // Time the mouse has been stationary (with some loose heuristic)
+    float                   MouseStationaryTimer;               // Time the input has been stationary (with some loose heuristic)
     ImVec2                  MouseLastValidPos;
 
     // Widget state
@@ -2123,7 +2123,7 @@ struct ImGuiContext
     bool                    DragCurrentAccumDirty;
     float                   DragCurrentAccum;                   // Accumulator for dragging modification. Always high-precision, not rounded by end-user precision settings
     float                   DragSpeedDefaultRatio;              // If speed == 0.0f, uses (max-min) * DragSpeedDefaultRatio
-    float                   ScrollbarClickDeltaToGrabCenter;    // Distance between mouse and center of grab box, normalized in parent space. Use storage?
+    float                   ScrollbarClickDeltaToGrabCenter;    // Distance between input and center of grab box, normalized in parent space. Use storage?
     float                   DisabledAlphaBackup;                // Backup for style.Alpha for BeginDisabled()
     short                   DisabledStackSize;
     short                   LockMarkEdited;
@@ -2509,7 +2509,7 @@ struct IMGUI_API ImGuiWindow
     ImRect                  ParentWorkRect;                     // Backup of WorkRect before entering a container such as columns/tables. Used by e.g. SpanAllColumns functions to easily access. Stacked containers are responsible for maintaining this. // FIXME-WORKRECT: Could be a stack?
     ImRect                  ClipRect;                           // Current clipping/scissoring rectangle, evolve as we are using PushClipRect(), etc. == DrawList->clip_rect_stack.back().
     ImRect                  ContentRegionRect;                  // FIXME: This is currently confusing/misleading. It is essentially WorkRect but not handling of scrolling. We currently rely on it as right/bottom aligned sizing operation need some size to rely on.
-    ImVec2ih                HitTestHoleSize;                    // Define an optional rectangular hole where mouse will pass-through the window.
+    ImVec2ih                HitTestHoleSize;                    // Define an optional rectangular hole where input will pass-through the window.
     ImVec2ih                HitTestHoleOffset;
 
     int                     LastFrameActive;                    // Last frame number the window was Active.
@@ -2963,7 +2963,7 @@ namespace ImGui
     IMGUI_API ImDrawList*   GetForegroundDrawList(ImGuiViewport* viewport);                     // getValue foreground draw list for the given viewport. this draw list will be the last rendered one. Useful to quickly draw shapes/text over dear imgui contents.
     IMGUI_API void          AddDrawListToDrawDataEx(ImDrawData* draw_data, ImVector<ImDrawList*>* out_list, ImDrawList* draw_list);
 
-    // Init
+    // init
     IMGUI_API void          Initialize();
     IMGUI_API void          Shutdown();    // Since 1.60 this is a _private_ function. You can call DestroyContext() to destroy the context created by CreateContext().
 
@@ -3416,7 +3416,7 @@ namespace ImGui
     IMGUI_API void          DebugDrawLineExtents(ImU32 col = IM_COL32(255, 0, 0, 255));
     IMGUI_API void          DebugDrawItemRect(ImU32 col = IM_COL32(255, 0, 0, 255));
     IMGUI_API void          DebugLocateItem(ImGuiID target_id);                     // Call sparingly: only 1 at the same time!
-    IMGUI_API void          DebugLocateItemOnHover(ImGuiID target_id);              // Only call on reaction to a mouse Hover: because only 1 at the same time!
+    IMGUI_API void          DebugLocateItemOnHover(ImGuiID target_id);              // Only call on reaction to a input Hover: because only 1 at the same time!
     IMGUI_API void          DebugLocateItemResolveWithLastItem();
     IMGUI_API void          DebugBreakClearData();
     IMGUI_API bool          DebugBreakButton(const char* label, const char* description_of_location);

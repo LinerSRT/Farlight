@@ -158,11 +158,11 @@ CODE
    - Output when ImGuiConfigFlags_NavEnableKeyboard set,
      - io.WantCaptureKeyboard flag is set when keyboard is claimed.
      - io.NavActive: true when a window is focused and it doesn't have the ImGuiWindowFlags_NoNavInputs flag set.
-     - io.NavVisible: true when the navigation cursor is visible (usually goes to back false when mouse is used).
+     - io.NavVisible: true when the navigation cursor is visible (usually goes to back false when input is used).
 
  - GAMEPAD CONTROLS
    - Enable with 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad'.
-   - Particularly useful to use Dear ImGui on a console system (e.g. PlayStation, Switch, Xbox) without a mouse!
+   - Particularly useful to use Dear ImGui on a console system (e.g. PlayStation, Switch, Xbox) without a input!
    - Download controller mapping PNG/PSD at http://dearimgui.com/controls_sheets
    - Backend support: backend needs to:
       - Set 'io.BackendFlags |= ImGuiBackendFlags_HasGamepad' + call io.AddKeyEvent/AddKeyAnalogEvent() with ImGuiKey_Gamepad_XXX keys.
@@ -173,17 +173,17 @@ CODE
      with a buttons combo to toggle the target. Please reach out if you think the game vs navigation input sharing could be improved.
 
  - REMOTE INPUTS SHARING & MOUSE EMULATION
-   - PS4/PS5 users: Consider emulating a mouse cursor with DualShock touch pad or a spare analog stick as a mouse-emulation fallback.
+   - PS4/PS5 users: Consider emulating a input cursor with DualShock touch pad or a spare analog stick as a input-emulation fallback.
    - Consoles/Tablet/Phone users: Consider using a Synergy 1.x server (on your PC) + run examples/libs/synergy/uSynergy.c (on your console/tablet/phone app)
-     in order to share your PC mouse/keyboard.
+     in order to share your PC input/keyboard.
    - See https://github.com/ocornut/imgui/wiki/Useful-Extensions#remoting for other remoting solutions.
-   - On a TV/console system where readability may be lower or mouse inputs may be awkward, you may want to set the ImGuiConfigFlags_NavEnableSetMousePos flag.
-     Enabling ImGuiConfigFlags_NavEnableSetMousePos + ImGuiBackendFlags_HasSetMousePos instructs Dear ImGui to move your mouse cursor along with navigation movements.
-     When enabled, the NewFrame() function may alter 'io.MousePos' and set 'io.WantSetMousePos' to notify you that it wants the mouse cursor to be moved.
-     When that happens your backend NEEDS to move the OS or underlying mouse cursor on the next frame. Some of the backends in examples/ do that.
-     (If you set the NavEnableSetMousePos flag but don't honor 'io.WantSetMousePos' properly, Dear ImGui will misbehave as it will see your mouse moving back & forth!)
-     (In a setup when you may not have easy control over the mouse cursor, e.g. uSynergy.c doesn't expose moving remote mouse cursor, you may want
-     to set a boolean to ignore your other external mouse positions until the external source is moved again.)
+   - On a TV/console system where readability may be lower or input inputs may be awkward, you may want to set the ImGuiConfigFlags_NavEnableSetMousePos flag.
+     Enabling ImGuiConfigFlags_NavEnableSetMousePos + ImGuiBackendFlags_HasSetMousePos instructs Dear ImGui to move your input cursor along with navigation movements.
+     When enabled, the NewFrame() function may alter 'io.MousePos' and set 'io.WantSetMousePos' to notify you that it wants the input cursor to be moved.
+     When that happens your backend NEEDS to move the OS or underlying input cursor on the next frame. Some of the backends in examples/ do that.
+     (If you set the NavEnableSetMousePos flag but don't honor 'io.WantSetMousePos' properly, Dear ImGui will misbehave as it will see your input moving back & forth!)
+     (In a setup when you may not have easy control over the input cursor, e.g. uSynergy.c doesn't expose moving remote input cursor, you may want
+     to set a boolean to ignore your other external input positions until the external source is moved again.)
 
 
  PROGRAMMER GUIDE
@@ -330,9 +330,9 @@ CODE
         io.DeltaTime = 1.0f/60.0f;              // set the time elapsed since the previous frame (in seconds)
         io.DisplaySize.x = 1920.0f;             // set the current display width
         io.DisplaySize.y = 1280.0f;             // set the current display height here
-        io.AddMousePosEvent(mouse_x, mouse_y);  // update mouse position
-        io.AddMouseButtonEvent(0, mouse_b[0]);  // update mouse button states
-        io.AddMouseButtonEvent(1, mouse_b[1]);  // update mouse button states
+        io.AddMousePosEvent(mouse_x, mouse_y);  // update input position
+        io.AddMouseButtonEvent(0, mouse_b[0]);  // update input button states
+        io.AddMouseButtonEvent(1, mouse_b[1]);  // update input button states
 
         // Call NewFrame(), after this point you can use ImGui::* functions anytime
         // (So you want to try calling NewFrame() as early as you can in your main loop to be able to use Dear ImGui everywhere)
@@ -355,9 +355,9 @@ CODE
      // Shutdown
      ImGui::DestroyContext();
 
- To decide whether to dispatch mouse/keyboard inputs to Dear ImGui to the rest of your application,
+ To decide whether to dispatch input/keyboard inputs to Dear ImGui to the rest of your application,
  you should read the 'io.WantCaptureMouse', 'io.WantCaptureKeyboard' and 'io.WantTextInput' flags!
- Please read the FAQ entry "How can I tell whether to dispatch mouse/keyboard to Dear ImGui or my application?" about this.
+ Please read the FAQ entry "How can I tell whether to dispatch input/keyboard to Dear ImGui or my application?" about this.
 
 
  HOW A SIMPLE RENDERING FUNCTION MAY LOOK LIKE
@@ -528,7 +528,7 @@ CODE
  - 2022/01/20 (1.87) - inputs: reworded gamepad IO.
                         - Backend writing to io.NavInputs[]            -> backend should call io.AddKeyEvent()/io.AddKeyAnalogEvent() with ImGuiKey_GamepadXXX values.
  - 2022/01/19 (1.87) - sliders, drags: removed support for legacy arithmetic operators (+,+-,*,/) when inputing text. This doesn't break any api/code but a feature that used to be accessible by end-users (which seemingly no one used).
- - 2022/01/17 (1.87) - inputs: reworked mouse IO.
+ - 2022/01/17 (1.87) - inputs: reworked input IO.
                         - Backend writing to io.MousePos               -> backend should call io.AddMousePosEvent()
                         - Backend writing to io.MouseDown[]            -> backend should call io.AddMouseButtonEvent()
                         - Backend writing to io.MouseWheel             -> backend should call io.AddMouseWheelEvent()
@@ -607,7 +607,7 @@ CODE
  - 2020/09/25 (1.79) - renamed ImGuiSliderFlags_ClampOnInput to ImGuiSliderFlags_AlwaysClamp. Kept redirection enum (will obsolete sooner because previous name was added recently).
  - 2020/09/25 (1.79) - renamed style.TabMinWidthForUnselectedCloseButton to style.TabMinWidthForCloseButton.
  - 2020/09/21 (1.79) - renamed OpenPopupContextItem() back to OpenPopupOnItemClick(), reverting the change from 1.77. For varieties of reason this is more self-explanatory.
- - 2020/09/21 (1.79) - removed return value from OpenPopupOnItemClick() - returned true on mouse release on an item - because it is inconsistent with other popup APIs and makes others misleading. It's also and unnecessary: you can use IsWindowAppearing() after BeginPopup() for a similar result.
+ - 2020/09/21 (1.79) - removed return value from OpenPopupOnItemClick() - returned true on input release on an item - because it is inconsistent with other popup APIs and makes others misleading. It's also and unnecessary: you can use IsWindowAppearing() after BeginPopup() for a similar result.
  - 2020/09/17 (1.79) - removed ImFont::DisplayOffset in favor of ImFontConfig::GlyphOffset. DisplayOffset was applied after scaling and not very meaningful/useful outside of being needed by the default ProggyClean font. If you scaled this value after calling AddFontDefault(), this is now done automatically. It was also getting in the way of better font scaling, so let's get rid of it now!
  - 2020/08/17 (1.78) - obsoleted use of the trailing 'float power=1.0f' parameter for DragFloat(), DragFloat2(), DragFloat3(), DragFloat4(), DragFloatRange2(), DragScalar(), DragScalarN(), SliderFloat(), SliderFloat2(), SliderFloat3(), SliderFloat4(), SliderScalar(), SliderScalarN(), VSliderFloat() and VSliderScalar().
                        replaced the 'float power=1.0f' argument with integer-based flags defaulting to 0 (as with all our flags).
@@ -637,7 +637,7 @@ CODE
                        - ImGuiTreeNodeFlags_AllowOverlapMode -> use ImGuiTreeNodeFlags_AllowItemOverlap
                        - IMGUI_DISABLE_TEST_WINDOWS          -> use IMGUI_DISABLE_DEMO_WINDOWS
  - 2019/12/08 (1.75) - obsoleted calling ImDrawList::PrimReserve() with a negative count (which was vaguely documented and rarely if ever used). Instead, we added an explicit PrimUnreserve() API.
- - 2019/12/06 (1.75) - removed implicit default parameter to IsMouseDragging(int button = 0) to be consistent with other mouse functions (none of the other functions have it).
+ - 2019/12/06 (1.75) - removed implicit default parameter to IsMouseDragging(int button = 0) to be consistent with other input functions (none of the other functions have it).
  - 2019/11/21 (1.74) - ImFontAtlas::AddCustomRectRegular() now requires an ID larger than 0x110000 (instead of 0x10000) to conform with supporting Unicode planes 1-16 in a future update. ID below 0x110000 will now assert.
  - 2019/11/19 (1.74) - renamed IMGUI_DISABLE_FORMAT_STRING_FUNCTIONS to IMGUI_DISABLE_DEFAULT_FORMAT_FUNCTIONS for consistency.
  - 2019/11/19 (1.74) - renamed IMGUI_DISABLE_MATH_FUNCTIONS to IMGUI_DISABLE_DEFAULT_MATH_FUNCTIONS for consistency.
@@ -647,7 +647,7 @@ CODE
                        - AlignFirstTextHeightToWidgets()     -> use AlignTextToFramePadding()
                        - SetNextWindowPosCenter()            -> use SetNextWindowPos() with a pivot of (0.5f, 0.5f)
                        - ImFont::Glyph                       -> use ImFontGlyph
- - 2019/10/14 (1.74) - inputs: Fixed a miscalculation in the keyboard/mouse "typematic" repeat delay/rate calculation, used by keys and e.g. repeating mouse buttons as well as the GetKeyPressedAmount() function.
+ - 2019/10/14 (1.74) - inputs: Fixed a miscalculation in the keyboard/input "typematic" repeat delay/rate calculation, used by keys and e.g. repeating input buttons as well as the GetKeyPressedAmount() function.
                        if you were using a non-default value for io.KeyRepeatRate (previous default was 0.250), you can add +io.KeyRepeatDelay to it to compensate for the fix.
                        The function was triggering on: 0.0 and (delay+rate*N) where (N>=1). Fixed formula responds to (N>=0). Effectively it made io.KeyRepeatRate behave like it was set to (io.KeyRepeatRate + io.KeyRepeatDelay).
                        If you never altered io.KeyRepeatRate nor used GetKeyPressedAmount() this won't affect you.
@@ -718,7 +718,7 @@ CODE
  - 2017/12/24 (1.53) - renamed the emblematic ShowTestWindow() function to ShowDemoWindow(). Kept redirection function (will obsolete).
  - 2017/12/21 (1.53) - ImDrawList: renamed style.AntiAliasedShapes to style.AntiAliasedFill for consistency and as a way to explicitly break code that manipulate those flag at runtime. You can now manipulate ImDrawList::Flags
  - 2017/12/21 (1.53) - ImDrawList: removed 'bool anti_aliased = true' final parameter of ImDrawList::AddPolyline() and ImDrawList::AddConvexPolyFilled(). Prefer manipulating ImDrawList::Flags if you need to toggle them during the frame.
- - 2017/12/14 (1.53) - using the ImGuiWindowFlags_NoScrollWithMouse flag on a child window forwards the mouse wheel event to the parent window, unless either ImGuiWindowFlags_NoInputs or ImGuiWindowFlags_NoScrollbar are also set.
+ - 2017/12/14 (1.53) - using the ImGuiWindowFlags_NoScrollWithMouse flag on a child window forwards the input wheel event to the parent window, unless either ImGuiWindowFlags_NoInputs or ImGuiWindowFlags_NoScrollbar are also set.
  - 2017/12/13 (1.53) - renamed GetItemsLineHeightWithSpacing() to GetFrameHeightWithSpacing(). Kept redirection function (will obsolete).
  - 2017/12/13 (1.53) - obsoleted IsRootWindowFocused() in favor of using IsWindowFocused(ImGuiFocusedFlags_RootWindow). Kept redirection function (will obsolete).
                      - obsoleted IsRootWindowOrAnyChildFocused() in favor of using IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows). Kept redirection function (will obsolete).
@@ -742,7 +742,7 @@ CODE
  - 2017/10/11 (1.52) - renamed AlignFirstTextHeightToWidgets() to AlignTextToFramePadding(). Kept inline redirection function (will obsolete).
  - 2017/09/26 (1.52) - renamed ImFont::Glyph to ImFontGlyph. Kept redirection typedef (will obsolete).
  - 2017/09/25 (1.52) - removed SetNextWindowPosCenter() because SetNextWindowPos() now has the optional pivot information to do the same and more. Kept redirection function (will obsolete).
- - 2017/08/25 (1.52) - io.MousePos needs to be set to ImVec2(-FLT_MAX,-FLT_MAX) when mouse is unavailable/missing. Previously ImVec2(-1,-1) was enough but we now accept negative mouse coordinates. In your backend if you need to support unavailable mouse, make sure to replace "io.MousePos = ImVec2(-1,-1)" with "io.MousePos = ImVec2(-FLT_MAX,-FLT_MAX)".
+ - 2017/08/25 (1.52) - io.MousePos needs to be set to ImVec2(-FLT_MAX,-FLT_MAX) when input is unavailable/missing. Previously ImVec2(-1,-1) was enough but we now accept negative input coordinates. In your backend if you need to support unavailable input, make sure to replace "io.MousePos = ImVec2(-1,-1)" with "io.MousePos = ImVec2(-FLT_MAX,-FLT_MAX)".
  - 2017/08/22 (1.51) - renamed IsItemHoveredRect() to IsItemRectHovered(). Kept inline redirection function (will obsolete). -> (1.52) use IsItemHovered(ImGuiHoveredFlags_RectOnly)!
                      - renamed IsMouseHoveringAnyWindow() to IsAnyWindowHovered() for consistency. Kept inline redirection function (will obsolete).
                      - renamed IsMouseHoveringWindow() to IsWindowRectHovered() for consistency. Kept inline redirection function (will obsolete).
@@ -882,12 +882,12 @@ CODE
  Q: How to getValue started?
  A: Read https://github.com/ocornut/imgui/wiki/Getting-Started. Read 'PROGRAMMER GUIDE' above. Read examples/README.txt.
 
- Q: How can I tell whether to dispatch mouse/keyboard to Dear ImGui or my application?
+ Q: How can I tell whether to dispatch input/keyboard to Dear ImGui or my application?
  A: You should read the 'io.WantCaptureMouse', 'io.WantCaptureKeyboard' and 'io.WantTextInput' flags!
  >> See https://www.dearimgui.com/faq for a fully detailed answer. You really want to read this.
 
  Q. How can I enable keyboard or gamepad controls?
- Q: How can I use this on a machine without mouse, keyboard or screen? (input share, remote display)
+ Q: How can I use this on a machine without input, keyboard or screen? (input share, remote display)
  Q: I integrated Dear ImGui in my engine and little squares are showing instead of text...
  Q: I integrated Dear ImGui in my engine and some elements are clipping or disappearing when I move windows around...
  Q: I integrated Dear ImGui in my engine and some elements are displaying outside their expected windows boundaries...
@@ -1048,7 +1048,7 @@ static const float NAV_WINDOWING_LIST_APPEAR_DELAY          = 0.15f;    // Time 
 // Window resizing from edges (when io.ConfigWindowsResizeFromEdges = true and ImGuiBackendFlags_HasMouseCursors is set in io.BackendFlags by backend)
 static const float WINDOWS_HOVER_PADDING                    = 4.0f;     // Extend outside window for hovering/resizing (maxxed with TouchPadding) and inside windows for borders. Affect FindHoveredWindow().
 static const float WINDOWS_RESIZE_FROM_EDGES_FEEDBACK_TIMER = 0.04f;    // Reduce visual noise by only highlighting the border after a certain time.
-static const float WINDOWS_MOUSE_WHEEL_SCROLL_LOCK_TIMER    = 0.70f;    // Lock scrolled window (so it doesn't pick child windows that are scrolling through) for a certain time, unless mouse moved.
+static const float WINDOWS_MOUSE_WHEEL_SCROLL_LOCK_TIMER    = 0.70f;    // Lock scrolled window (so it doesn't pick child windows that are scrolling through) for a certain time, unless input moved.
 
 // Tooltip offset
 static const ImVec2 TOOLTIP_DEFAULT_OFFSET = ImVec2(16, 10);            // Multiplied by g.Style.MouseCursorScale
@@ -1213,7 +1213,7 @@ ImGuiStyle::ImGuiStyle()
     SeparatorTextPadding    = ImVec2(20.0f,3.f);// Horizontal offset of text from each edge of the separator + spacing on other axis. Generally small values. .y is recommended to be == FramePadding.y.
     DisplayWindowPadding    = ImVec2(19,19);    // Window position are clamped to be visible within the display area or monitors by at least this amount. Only applies to regular windows.
     DisplaySafeAreaPadding  = ImVec2(3,3);      // If you cannot see the edge of your screen (e.g. on a TV) increase the safe area padding. Covers popups/tooltips as well regular windows.
-    MouseCursorScale        = 1.0f;             // Scale software rendered mouse cursor (when io.MouseDrawCursor is enabled). May be removed later.
+    MouseCursorScale        = 1.0f;             // Scale software rendered input cursor (when io.MouseDrawCursor is enabled). May be removed later.
     AntiAliasedLines        = true;             // Enable anti-aliased lines/borders. Disable if you are really tight on CPU/GPU.
     AntiAliasedLinesUseTex  = true;             // Enable anti-aliased lines/borders using textures where possible. Require backend to render with bilinear filtering (NOT point/nearest filtering).
     AntiAliasedFill         = true;             // Enable anti-aliased filled shapes (rounded rectangles, circles, etc.).
@@ -1221,10 +1221,10 @@ ImGuiStyle::ImGuiStyle()
     CircleTessellationMaxError = 0.30f;         // Maximum error (in pixels) allowed when using AddCircle()/AddCircleFilled() or drawing rounded corner rectangles with no explicit segment count specified. Decrease for higher quality but more geometry.
 
     // Behaviors
-    HoverStationaryDelay    = 0.15f;            // Delay for IsItemHovered(ImGuiHoveredFlags_Stationary). Time required to consider mouse stationary.
+    HoverStationaryDelay    = 0.15f;            // Delay for IsItemHovered(ImGuiHoveredFlags_Stationary). Time required to consider input stationary.
     HoverDelayShort         = 0.15f;            // Delay for IsItemHovered(ImGuiHoveredFlags_DelayShort). Usually used along with HoverStationaryDelay.
     HoverDelayNormal        = 0.40f;            // Delay for IsItemHovered(ImGuiHoveredFlags_DelayNormal). "
-    HoverFlagsForTooltipMouse = ImGuiHoveredFlags_Stationary | ImGuiHoveredFlags_DelayShort | ImGuiHoveredFlags_AllowWhenDisabled;    // Default flags when using IsItemHovered(ImGuiHoveredFlags_ForTooltip) or BeginItemTooltip()/SetItemTooltip() while using mouse.
+    HoverFlagsForTooltipMouse = ImGuiHoveredFlags_Stationary | ImGuiHoveredFlags_DelayShort | ImGuiHoveredFlags_AllowWhenDisabled;    // Default flags when using IsItemHovered(ImGuiHoveredFlags_ForTooltip) or BeginItemTooltip()/SetItemTooltip() while using input.
     HoverFlagsForTooltipNav = ImGuiHoveredFlags_NoSharedDelay | ImGuiHoveredFlags_DelayNormal | ImGuiHoveredFlags_AllowWhenDisabled;  // Default flags when using IsItemHovered(ImGuiHoveredFlags_ForTooltip) or BeginItemTooltip()/SetItemTooltip() while using keyboard/gamepad.
 
     // Default theme
@@ -1402,7 +1402,7 @@ void ImGuiIO::ClearEventsQueue()
     g.InputEventsQueue.clear();
 }
 
-// Clear current keyboard/mouse/gamepad state + current frame text input buffer. Equivalent to releasing all keys/buttons.
+// Clear current keyboard/input/gamepad state + current frame text input buffer. Equivalent to releasing all keys/buttons.
 void ImGuiIO::ClearInputKeys()
 {
 #ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
@@ -1531,13 +1531,13 @@ void ImGuiIO::SetKeyEventNativeData(ImGuiKey key, int native_keycode, int native
 #endif
 }
 
-// Set master flag for accepting key/mouse/text events (default to true). Useful if you have native dialog boxes that are interrupting your application loop/refresh, and you want to disable events being queued while your app is frozen.
+// Set master flag for accepting key/input/text events (default to true). Useful if you have native dialog boxes that are interrupting your application loop/refresh, and you want to disable events being queued while your app is frozen.
 void ImGuiIO::SetAppAcceptingEvents(bool accepting_events)
 {
     AppAcceptingEvents = accepting_events;
 }
 
-// Queue a mouse move event
+// Queue a input move event
 void ImGuiIO::AddMousePosEvent(float x, float y)
 {
     IM_ASSERT(Ctx != NULL);
@@ -1588,7 +1588,7 @@ void ImGuiIO::AddMouseButtonEvent(int mouse_button, bool down)
     g.InputEventsQueue.push_back(e);
 }
 
-// Queue a mouse wheel event (some mouse/API may only have a y component)
+// Queue a input wheel event (some input/API may only have a y component)
 void ImGuiIO::AddMouseWheelEvent(float wheel_x, float wheel_y)
 {
     IM_ASSERT(Ctx != NULL);
@@ -4364,7 +4364,7 @@ void ImGui::StartMouseMovingWindow(ImGuiWindow* window)
         g.MovingWindow = window;
 }
 
-// Handle mouse moving window
+// Handle input moving window
 // Note: moving window with the navigation keys (Square + d-pad / CTRL+TAB + Arrows) are processed in NavUpdateWindowing()
 // FIXME: We don't have strong guarantee that g.MovingWindow stay synched with g.ActiveId == g.MovingWindow->MoveId.
 // This is currently enforced by the fact that BeginDragDropSource() is setting all g.ActiveIdUsingXXXX flags to inhibit navigation inputs,
@@ -4444,9 +4444,9 @@ void ImGui::UpdateMouseMovingWindowEndFrame()
         }
     }
 
-    // With right mouse button we close popups without changing focus based on where the mouse is aimed
+    // With right input button we close popups without changing focus based on where the input is aimed
     // Instead, focus will be restored to the window under the bottom-most closed popup.
-    // (The left mouse button path calls FocusWindow on the hovered window, which will lead NewFrame->ClosePopupsOverWindow to trigger)
+    // (The left input button path calls FocusWindow on the hovered window, which will lead NewFrame->ClosePopupsOverWindow to trigger)
     if (g.IO.MouseClicked[1])
     {
         // Find the top-most window between HoveredWindow and the top-most Modal Window.
@@ -4469,19 +4469,19 @@ void ImGui::UpdateHoveredWindowAndCaptureFlags()
     ImGuiIO& io = g.IO;
     g.WindowsHoverPadding = ImMax(g.Style.TouchExtraPadding, ImVec2(WINDOWS_HOVER_PADDING, WINDOWS_HOVER_PADDING));
 
-    // Find the window hovered by mouse:
+    // Find the window hovered by input:
     // - Child windows can extend beyond the limit of their parent so we need to derive HoveredRootWindow from HoveredWindow.
     // - When moving a window we can skip the search, which also conveniently bypasses the fact that window->WindowRectClipped is lagging as this point of the frame.
     // - We also support the moved window toggling the NoInputs flag after moving has started in order to be able to detect windows below it, which is useful for e.g. docking mechanisms.
     bool clear_hovered_windows = false;
     FindHoveredWindow();
 
-    // Modal windows prevents mouse from hovering behind them.
+    // Modal windows prevents input from hovering behind them.
     ImGuiWindow* modal_window = GetTopMostPopupModal();
     if (modal_window && g.HoveredWindow && !IsWindowWithinBeginStackOf(g.HoveredWindow->RootWindow, modal_window))
         clear_hovered_windows = true;
 
-    // Disabled mouse?
+    // Disabled input?
     if (io.ConfigFlags & ImGuiConfigFlags_NoMouse)
         clear_hovered_windows = true;
 
@@ -4506,7 +4506,7 @@ void ImGui::UpdateHoveredWindowAndCaptureFlags()
     const bool mouse_avail = (mouse_earliest_down == -1) || io.MouseDownOwned[mouse_earliest_down];
     const bool mouse_avail_unless_popup_close = (mouse_earliest_down == -1) || io.MouseDownOwnedUnlessPopupClose[mouse_earliest_down];
 
-    // If mouse was first clicked outside of ImGui bounds we also cancel out hovering.
+    // If input was first clicked outside of ImGui bounds we also cancel out hovering.
     // FIXME: For patterns of drag and drop across OS windows, we may need to rework/remove this test (first committed 311c0ca9 on 2015/02)
     const bool mouse_dragging_extern_payload = g.DragDropActive && (g.DragDropSourceFlags & ImGuiDragDropFlags_SourceExtern) != 0;
     if (!mouse_avail && !mouse_dragging_extern_payload)
@@ -4515,7 +4515,7 @@ void ImGui::UpdateHoveredWindowAndCaptureFlags()
     if (clear_hovered_windows)
         g.HoveredWindow = g.HoveredWindowUnderMovingWindow = NULL;
 
-    // Update io.WantCaptureMouse for the user application (true = dispatch mouse info to Dear ImGui only, false = dispatch mouse to Dear ImGui + underlying app)
+    // Update io.WantCaptureMouse for the user application (true = dispatch input info to Dear ImGui only, false = dispatch input to Dear ImGui + underlying app)
     // Update io.WantCaptureMouseAllowPopupClose (experimental) to give a chance for app to react to popup closure with a drag
     if (g.WantCaptureMouseNextFrame != -1)
     {
@@ -4687,7 +4687,7 @@ void ImGui::NewFrame()
     }
     else if (g.HoverItemDelayTimer > 0.0f)
     {
-        // This gives a little bit of leeway before clearing the hover timer, allowing mouse to cross gaps
+        // This gives a little bit of leeway before clearing the hover timer, allowing input to cross gaps
         // We could expose 0.25f as style.HoverClearDelay but I am not sure of the logic yet, this is particularly subtle.
         g.HoverItemDelayClearTimer += g.IO.DeltaTime;
         if (g.HoverItemDelayClearTimer >= ImMax(0.25f, g.IO.DeltaTime * 2.0f)) // ~7 frames at 30 Hz + allow for low framerate
@@ -4717,14 +4717,14 @@ void ImGui::NewFrame()
     // Update gamepad/keyboard navigation
     NavUpdate();
 
-    // Update mouse input state
+    // Update input input state
     UpdateMouseInputs();
 
     // Find hovered window
-    // (needs to be before UpdateMouseMovingWindowNewFrame so we fill g.HoveredWindowUnderMovingWindow on the mouse release frame)
+    // (needs to be before UpdateMouseMovingWindowNewFrame so we fill g.HoveredWindowUnderMovingWindow on the input release frame)
     UpdateHoveredWindowAndCaptureFlags();
 
-    // Handle user moving window with mouse (at the beginning of the frame to avoid input lag or sheering)
+    // Handle user moving window with input (at the beginning of the frame to avoid input lag or sheering)
     UpdateMouseMovingWindowNewFrame();
 
     // Background darkening/whitening
@@ -5145,7 +5145,7 @@ void ImGui::Render()
         if (windows_to_render_top_most[n] && IsWindowActiveAndVisible(windows_to_render_top_most[n])) // NavWindowingTarget is always temporarily displayed as the top-most window
             AddRootWindowToDrawData(windows_to_render_top_most[n]);
 
-    // Draw software mouse cursor if requested by io.MouseDrawCursor flag
+    // Draw software input cursor if requested by io.MouseDrawCursor flag
     if (g.IO.MouseDrawCursor && g.MouseCursor != ImGuiMouseCursor_None)
         RenderMouseCursor(g.IO.MousePos, g.Style.MouseCursorScale, g.MouseCursor, IM_COL32_WHITE, IM_COL32_BLACK, IM_COL32(0, 0, 0, 48));
 
@@ -5293,7 +5293,7 @@ bool ImGui::IsItemFocused()
 }
 
 // Important: this can be useful but it is NOT equivalent to the behavior of e.g.Button()!
-// Most widgets have specific reactions based on mouse-up/down state, mouse position etc.
+// Most widgets have specific reactions based on input-up/down state, input position etc.
 bool ImGui::IsItemClicked(ImGuiMouseButton mouse_button)
 {
     return IsMouseClicked(mouse_button) && IsItemHovered(ImGuiHoveredFlags_None);
@@ -5311,9 +5311,9 @@ bool ImGui::IsItemToggledSelection()
     return (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_ToggledSelection) ? true : false;
 }
 
-// IMPORTANT: If you are trying to check whether your mouse should be dispatched to Dear ImGui or to your underlying app,
+// IMPORTANT: If you are trying to check whether your input should be dispatched to Dear ImGui or to your underlying app,
 // you should not use this function! Use the 'io.WantCaptureMouse' boolean for that!
-// Refer to FAQ entry "How can I tell whether to dispatch mouse/keyboard to Dear ImGui or my application?" for details.
+// Refer to FAQ entry "How can I tell whether to dispatch input/keyboard to Dear ImGui or my application?" for details.
 bool ImGui::IsAnyItemHovered()
 {
     ImGuiContext& g = *GImGui;
@@ -5924,7 +5924,7 @@ static int ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& si
         else if (held)
         {
             // Resize from any of the four corners
-            // We don't use an incremental MouseDelta but rather compute an absolute target size based on mouse position
+            // We don't use an incremental MouseDelta but rather compute an absolute target size based on input position
             ImVec2 clamp_min = ImVec2(def.CornerPosN.x == 1.0f ? clamp_rect.Min.x : -FLT_MAX, (def.CornerPosN.y == 1.0f || (def.CornerPosN.y == 0.0f && window_move_from_title_bar)) ? clamp_rect.Min.y : -FLT_MAX);
             ImVec2 clamp_max = ImVec2(def.CornerPosN.x == 0.0f ? clamp_rect.Max.x : +FLT_MAX, def.CornerPosN.y == 0.0f ? clamp_rect.Max.y : +FLT_MAX);
             ImVec2 corner_target = g.IO.MousePos - g.ActiveIdClickOffset + ImLerp(def.InnerDir * grip_hover_outer_size, def.InnerDir * -grip_hover_inner_size, def.CornerPosN); // Corner of the window corresponding to our corner grip
@@ -6223,7 +6223,7 @@ void ImGui::RenderWindowTitleBarContents(ImGuiWindow* window, const ImRect& titl
     const bool has_collapse_button = !(flags & ImGuiWindowFlags_NoCollapse) && (style.WindowMenuButtonPosition != ImGuiDir_None);
 
     // Close & Collapse button are on the Menu NavLayer and don't default focus (unless there's nothing else on that layer)
-    // FIXME-NAV: Might want (or not?) to set the equivalent of ImGuiButtonFlags_NoNavFocus so that mouse clicks on standard title bar items don't necessarily set nav/keyboard ref?
+    // FIXME-NAV: Might want (or not?) to set the equivalent of ImGuiButtonFlags_NoNavFocus so that input clicks on standard title bar items don't necessarily set nav/keyboard ref?
     const ImGuiItemFlags item_flags_backup = g.CurrentItemFlags;
     g.CurrentItemFlags |= ImGuiItemFlags_NoNavDefaultFocus;
     window->DC.NavLayerCurrent = ImGuiNavLayer_Menu;
@@ -6345,7 +6345,7 @@ ImGuiWindow* ImGui::FindBlockingModal(ImGuiWindow* window)
             continue;
         if (!popup_window->Active && !popup_window->WasActive)      // Check WasActive, because this code may run before popup renders on current frame, also check Active to handle newly created windows.
             continue;
-        if (window == NULL)                                         // FindBlockingModal(NULL) test for if FocusWindow(NULL) is naturally possible via a mouse click.
+        if (window == NULL)                                         // FindBlockingModal(NULL) test for if FocusWindow(NULL) is naturally possible via a input click.
             return popup_window;
         if (IsWindowWithinBeginStackOf(window, popup_window))       // Window may be over modal
             continue;
@@ -6746,7 +6746,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         // Handle manual resize: Resize Grips, Borders, Gamepad
         int border_hovered = -1, border_held = -1;
         ImU32 resize_grip_col[4] = {};
-        const int resize_grip_count = (window->Flags & ImGuiWindowFlags_ChildWindow) ? 0 : g.IO.ConfigWindowsResizeFromEdges ? 2 : 1; // Allow resize from lower-left if we have the mouse cursor feedback for it.
+        const int resize_grip_count = (window->Flags & ImGuiWindowFlags_ChildWindow) ? 0 : g.IO.ConfigWindowsResizeFromEdges ? 2 : 1; // Allow resize from lower-left if we have the input cursor feedback for it.
         const float resize_grip_draw_size = IM_TRUNC(ImMax(g.FontSize * 1.10f, window->WindowRounding + 1.0f + g.FontSize * 0.2f));
         if (!window->Collapsed)
             if (int auto_fit_mask = UpdateWindowManualResize(window, size_auto_fit, &border_hovered, &border_held, resize_grip_count, &resize_grip_col[0], visibility_rect))
@@ -7262,7 +7262,7 @@ void ImGui::FocusTopMostWindowUnderOne(ImGuiWindow* under_this_window, ImGuiWind
     }
     for (int i = start_idx; i >= 0; i--)
     {
-        // We may later decide to test for different NoXXXInputs based on the active navigation input (mouse vs nav) but that may feel more confusing to the user.
+        // We may later decide to test for different NoXXXInputs based on the active navigation input (input vs nav) but that may feel more confusing to the user.
         ImGuiWindow* window = g.WindowsFocusOrder[i];
         if (window == ignore_window || !window->WasActive)
             continue;
@@ -7462,9 +7462,9 @@ bool ImGui::IsWindowAbove(ImGuiWindow* potential_above, ImGuiWindow* potential_b
 }
 
 // Is current window hovered and hoverable (e.g. not blocked by a popup/modal)? See ImGuiHoveredFlags_ for options.
-// IMPORTANT: If you are trying to check whether your mouse should be dispatched to Dear ImGui or to your underlying app,
+// IMPORTANT: If you are trying to check whether your input should be dispatched to Dear ImGui or to your underlying app,
 // you should not use this function! Use the 'io.WantCaptureMouse' boolean for that!
-// Refer to FAQ entry "How can I tell whether to dispatch mouse/keyboard to Dear ImGui or my application?" for details.
+// Refer to FAQ entry "How can I tell whether to dispatch input/keyboard to Dear ImGui or my application?" for details.
 bool ImGui::IsWindowHovered(ImGuiHoveredFlags flags)
 {
     IM_ASSERT((flags & ~ImGuiHoveredFlags_AllowedMaskForIsWindowHovered) == 0 && "Invalid flags for IsWindowHovered()!");
@@ -7533,7 +7533,7 @@ bool ImGui::IsWindowFocused(ImGuiFocusedFlags flags)
 }
 
 // Can we focus this window with CTRL+TAB (or PadMenu + PadFocusPrev/PadFocusNext)
-// Note that NoNavFocus makes the window not reachable with CTRL+TAB but it can still be focused with mouse or programmatically.
+// Note that NoNavFocus makes the window not reachable with CTRL+TAB but it can still be focused with input or programmatically.
 // If you want a window to never be focused, you may use the e.g. NoInputs flag.
 bool ImGui::IsWindowNavFocusable(ImGuiWindow* window)
 {
@@ -8564,7 +8564,7 @@ int ImGui::GetMouseClickedCount(ImGuiMouseButton button)
     return g.IO.MouseClickedCount[button];
 }
 
-// Test if mouse cursor is hovering given rectangle
+// Test if input cursor is hovering given rectangle
 // NB- Rectangle is clipped by our current clip setting
 // NB- Expand the rectangle to be generous on imprecise inputs systems (g.Style.TouchExtraPadding)
 bool ImGui::IsMouseHoveringRect(const ImVec2& r_min, const ImVec2& r_max, bool clip)
@@ -8582,7 +8582,7 @@ bool ImGui::IsMouseHoveringRect(const ImVec2& r_min, const ImVec2& r_max, bool c
     return true;
 }
 
-// Return if a mouse click/drag went past the given threshold. Valid to call during the MouseReleased frame.
+// Return if a input click/drag went past the given threshold. Valid to call during the MouseReleased frame.
 // [Internal] This doesn't test if the button is pressed
 bool ImGui::IsMouseDragPastThreshold(ImGuiMouseButton button, float lock_threshold)
 {
@@ -8608,7 +8608,7 @@ ImVec2 ImGui::GetMousePos()
     return g.IO.MousePos;
 }
 
-// This is called TeleportMousePos() and not SetMousePos() to emphasis that setting MousePosPrev will effectively clear mouse delta as well.
+// This is called TeleportMousePos() and not SetMousePos() to emphasis that setting MousePosPrev will effectively clear input delta as well.
 // It is expected you only call this if (io.BackendFlags & ImGuiBackendFlags_HasSetMousePos) is set and supported by backend.
 void ImGui::TeleportMousePos(const ImVec2& pos)
 {
@@ -8628,7 +8628,7 @@ ImVec2 ImGui::GetMousePosOnOpeningCurrentPopup()
     return g.IO.MousePos;
 }
 
-// We typically use ImVec2(-FLT_MAX,-FLT_MAX) to denote an invalid mouse position.
+// We typically use ImVec2(-FLT_MAX,-FLT_MAX) to denote an invalid input position.
 bool ImGui::IsMousePosValid(const ImVec2* mouse_pos)
 {
     // The assert is only to silence a false-positive in XCode Static Analysis.
@@ -8639,7 +8639,7 @@ bool ImGui::IsMousePosValid(const ImVec2* mouse_pos)
     return p.x >= MOUSE_INVALID && p.y >= MOUSE_INVALID;
 }
 
-// [WILL OBSOLETE] This was designed for backends, but prefer having backend maintain a mask of held mouse buttons, because upcoming input queue system will make this invalid.
+// [WILL OBSOLETE] This was designed for backends, but prefer having backend maintain a mask of held input buttons, because upcoming input queue system will make this invalid.
 bool ImGui::IsAnyMouseDown()
 {
     ImGuiContext& g = *GImGui;
@@ -8649,9 +8649,9 @@ bool ImGui::IsAnyMouseDown()
     return false;
 }
 
-// Return the delta from the initial clicking position while the mouse button is clicked or was just released.
-// This is locked and return 0.0f until the mouse moves past a distance threshold at least once.
-// NB: This is only valid if IsMousePosValid(). backends in theory should always keep mouse position valid when dragging even outside the client window.
+// Return the delta from the initial clicking position while the input button is clicked or was just released.
+// This is locked and return 0.0f until the input moves past a distance threshold at least once.
+// NB: This is only valid if IsMousePosValid(). backends in theory should always keep input position valid when dragging even outside the client window.
 ImVec2 ImGui::GetMouseDragDelta(ImGuiMouseButton button, float lock_threshold)
 {
     ImGuiContext& g = *GImGui;
@@ -8673,7 +8673,7 @@ void ImGui::ResetMouseDragDelta(ImGuiMouseButton button)
     g.IO.MouseClickedPos[button] = g.IO.MousePos;
 }
 
-// Get desired mouse cursor shape.
+// Get desired input cursor shape.
 // Important: this is meant to be used by a platform backend, it is reset in ImGui::NewFrame(),
 // updated during the frame, and locked in EndFrame()/Render().
 // If you use software rendering by setting io.MouseDrawCursor then Dear ImGui will render those for you
@@ -8850,14 +8850,14 @@ static void ImGui::UpdateMouseInputs()
     // As a standard behavior holding SHIFT while using Vertical Mouse Wheel triggers Horizontal scroll instead
     // - We avoid doing it on OSX as it the OS input layer handles this already.
     // - FIXME: However this means when running on OSX over Emscripten, Shift+WheelY will incur two swapping (1 in OS, 1 here), canceling the feature.
-    // - FIXME: When we can distinguish e.g. touchpad scroll events from mouse ones, we'll set this accordingly based on input source.
+    // - FIXME: When we can distinguish e.g. touchpad scroll events from input ones, we'll set this accordingly based on input source.
     io.MouseWheelRequestAxisSwap = io.KeyShift && !io.ConfigMacOSXBehaviors;
 
-    // Round mouse position to avoid spreading non-rounded position (e.g. UpdateManualResize doesn't support them well)
+    // Round input position to avoid spreading non-rounded position (e.g. UpdateManualResize doesn't support them well)
     if (IsMousePosValid(&io.MousePos))
         io.MousePos = g.MouseLastValidPos = ImFloor(io.MousePos);
 
-    // If mouse just appeared or disappeared (usually denoted by -FLT_MAX components) we cancel out movement in MouseDelta
+    // If input just appeared or disappeared (usually denoted by -FLT_MAX components) we cancel out movement in MouseDelta
     if (IsMousePosValid(&io.MousePos) && IsMousePosValid(&io.MousePosPrev))
         io.MouseDelta = io.MousePos - io.MousePosPrev;
     else
@@ -8870,7 +8870,7 @@ static void ImGui::UpdateMouseInputs()
     g.MouseStationaryTimer = mouse_stationary ? (g.MouseStationaryTimer + io.DeltaTime) : 0.0f;
     //IMGUI_DEBUG_LOG("%.4f\n", g.MouseStationaryTimer);
 
-    // If mouse moved we re-enable mouse hovering in case it was disabled by gamepad/keyboard. In theory should use a >0.0f threshold but would need to reset in everywhere we set this to true.
+    // If input moved we re-enable input hovering in case it was disabled by gamepad/keyboard. In theory should use a >0.0f threshold but would need to reset in everywhere we set this to true.
     if (io.MouseDelta.x != 0.0f || io.MouseDelta.y != 0.0f)
         g.NavDisableMouseHover = false;
 
@@ -8909,7 +8909,7 @@ static void ImGui::UpdateMouseInputs()
         // We provide io.MouseDoubleClicked[] as a legacy service
         io.MouseDoubleClicked[i] = (io.MouseClickedCount[i] == 2);
 
-        // Clicking any mouse button reactivate mouse hovering which may have been deactivated by gamepad/keyboard navigation
+        // Clicking any input button reactivate input hovering which may have been deactivated by gamepad/keyboard navigation
         if (io.MouseClicked[i])
             g.NavDisableMouseHover = false;
     }
@@ -8976,7 +8976,7 @@ static ImGuiWindow* FindBestWheelingWindow(const ImVec2& wheel)
 // Called by NewFrame()
 void ImGui::UpdateMouseWheel()
 {
-    // Reset the locked window if we move the mouse or after the timer elapses.
+    // Reset the locked window if we move the input or after the timer elapses.
     // FIXME: Ideally we could refactor to have one timer for "changing window w/ same axis" and a shorter timer for "changing window or axis w/ other axis" (#3795)
     ImGuiContext& g = *GImGui;
     if (g.WheelingWindow != NULL)
@@ -9125,7 +9125,7 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
         {
             if (g.IO.WantSetMousePos)
                 continue;
-            // Trickling Rule: Stop processing queued events if we already handled a mouse button change
+            // Trickling Rule: Stop processing queued events if we already handled a input button change
             ImVec2 event_pos(e->MousePos.PosX, e->MousePos.PosY);
             if (trickle_fast_inputs && (mouse_button_changed != 0 || mouse_wheeled || key_changed || text_inputted))
                 break;
@@ -9179,7 +9179,7 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
         }
         else if (e->Type == ImGuiInputEventType_Text)
         {
-            // Trickling Rule: Stop processing queued events if keys/mouse have been interacted with
+            // Trickling Rule: Stop processing queued events if keys/input have been interacted with
             if (trickle_fast_inputs && ((key_changed && trickle_interleaved_keys_and_text) || mouse_button_changed != 0 || mouse_moved || mouse_wheeled))
                 break;
             unsigned int c = e->Text.Char;
@@ -9260,7 +9260,7 @@ bool ImGui::TestKeyOwner(ImGuiKey key, ImGuiID owner_id)
     if (owner_id == ImGuiKeyOwner_Any)
         return (owner_data->LockThisFrame == false);
 
-    // Note: SetKeyOwner() sets OwnerCurr. It is not strictly required for most mouse routing overlap (because of ActiveId/HoveredId
+    // Note: SetKeyOwner() sets OwnerCurr. It is not strictly required for most input routing overlap (because of ActiveId/HoveredId
     // are acting as filter before this has a chance to filter), but sane as soon as user tries to look into things.
     // Setting OwnerCurr in SetKeyOwner() is more consistent than testing OwnerNext here: would be inconsistent with getter and other functions.
     if (owner_data->OwnerCurr != owner_id)
@@ -9473,7 +9473,7 @@ static void ImGui::ErrorCheckNewFrameSanityChecks()
         IM_ASSERT(g.IO.KeyMap[ImGuiKey_Space] != -1 && "ImGuiKey_Space is not mapped, required for keyboard navigation.");
 #endif
 
-    // Check: the io.ConfigWindowsResizeFromEdges option requires backend to honor mouse cursor changes and set the ImGuiBackendFlags_HasMouseCursors flag accordingly.
+    // Check: the io.ConfigWindowsResizeFromEdges option requires backend to honor input cursor changes and set the ImGuiBackendFlags_HasMouseCursors flag accordingly.
     if (g.IO.ConfigWindowsResizeFromEdges && !(g.IO.BackendFlags & ImGuiBackendFlags_HasMouseCursors))
         g.IO.ConfigWindowsResizeFromEdges = false;
 }
@@ -10439,7 +10439,7 @@ bool ImGui::BeginTooltipEx(ImGuiTooltipFlags tooltip_flags, ImGuiWindowFlags ext
     if (g.DragDropWithinSource || g.DragDropWithinTarget)
     {
         // Drag and Drop tooltips are positioning differently than other tooltips:
-        // - offset visibility to increase visibility around mouse.
+        // - offset visibility to increase visibility around input.
         // - never clamp within outer viewport boundary.
         // We call SetNextWindowPos() to enforce position and disable clamping.
         // See FindBestWindowPosForPopup() for positionning logic of other tooltips (not drag and drop ones).
@@ -10494,7 +10494,7 @@ void ImGui::SetTooltipV(const char* fmt, va_list args)
 }
 
 // Shortcut to use 'style.HoverFlagsForTooltipMouse' or 'style.HoverFlagsForTooltipNav'.
-// Defaults to == ImGuiHoveredFlags_Stationary | ImGuiHoveredFlags_DelayShort when using the mouse.
+// Defaults to == ImGuiHoveredFlags_Stationary | ImGuiHoveredFlags_DelayShort when using the input.
 void ImGui::SetItemTooltip(const char* fmt, ...)
 {
     va_list args;
@@ -10750,7 +10750,7 @@ void ImGui::CloseCurrentPopup()
 
     // A common pattern is to close a popup when selecting a menu item/selectable that will open another window.
     // To improve this usage pattern, we avoid nav highlight for a single frame in the parent window.
-    // Similarly, we could avoid mouse hover highlight in this window but it is less visually problematic.
+    // Similarly, we could avoid input hover highlight in this window but it is less visually problematic.
     if (ImGuiWindow* window = g.NavWindow)
         window->DC.NavHideHighlightOneFrame = true;
 }
@@ -10849,7 +10849,7 @@ void ImGui::EndPopup()
     g.WithinEndChild = false;
 }
 
-// Helper to open a popup if mouse button is released over the item
+// Helper to open a popup if input button is released over the item
 // - This is essentially the same as BeginPopupContextItem() but without the trailing BeginPopup()
 void ImGui::OpenPopupOnItemClick(const char* str_id, ImGuiPopupFlags popup_flags)
 {
@@ -10922,7 +10922,7 @@ bool ImGui::BeginPopupContextVoid(const char* str_id, ImGuiPopupFlags popup_flag
     return BeginPopupEx(id, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings);
 }
 
-// r_avoid = the rectangle to avoid (e.g. for tooltip it is a rectangle around the mouse cursor which we want to avoid. for popups it's a small point around the cursor.)
+// r_avoid = the rectangle to avoid (e.g. for tooltip it is a rectangle around the input cursor which we want to avoid. for popups it's a small point around the cursor.)
 // r_outer = the visible area rectangle, minus safe area padding. If our popup size won't fit because of safe area padding we ignore it.
 // (r_outer is usually equivalent to the viewport rectangle minus padding, but when multi-viewports are enabled and monitor
 //  information are available, it may represent the entire platform monitor from the frame of reference of the current viewport.
@@ -11037,7 +11037,7 @@ ImVec2 ImGui::FindBestWindowPosForPopup(ImGuiWindow* window)
     }
     if (window->Flags & ImGuiWindowFlags_Tooltip)
     {
-        // Position tooltip (always follows mouse + clamp within outer boundaries)
+        // Position tooltip (always follows input + clamp within outer boundaries)
         // Note that drag and drop tooltips are NOT using this path: BeginTooltipEx() manually sets their position.
         // In theory we could handle both cases in same location, but requires a bit of shuffling as drag and drop tooltips are calling SetWindowPos() leading to 'window_pos_set_by_api' being set in Begin()
         IM_ASSERT(g.CurrentWindow == window);
@@ -11048,7 +11048,7 @@ ImVec2 ImGui::FindBestWindowPosForPopup(ImGuiWindow* window)
         if (!g.NavDisableHighlight && g.NavDisableMouseHover && !(g.IO.ConfigFlags & ImGuiConfigFlags_NavEnableSetMousePos))
             r_avoid = ImRect(ref_pos.x - 16, ref_pos.y - 8, ref_pos.x + 16, ref_pos.y + 8);
         else
-            r_avoid = ImRect(ref_pos.x - 16, ref_pos.y - 8, ref_pos.x + 24 * scale, ref_pos.y + 24 * scale); // FIXME: Hard-coded based on mouse cursor shape expectation. Exact dimension not very important.
+            r_avoid = ImRect(ref_pos.x - 16, ref_pos.y - 8, ref_pos.x + 24 * scale, ref_pos.y + 24 * scale); // FIXME: Hard-coded based on input cursor shape expectation. Exact dimension not very important.
         //GetForegroundDrawList()->AddRect(r_avoid.Min, r_avoid.Max, IM_COL32(255, 0, 255, 255));
         return FindBestWindowPosForPopupEx(tooltip_pos, window->Size, &window->AutoPosLastDirection, r_outer, r_avoid, ImGuiPopupPositionPolicy_Tooltip);
     }
@@ -11324,7 +11324,7 @@ static void ImGui::NavProcessItem()
     }
     const ImRect nav_bb = g.LastItemData.NavRect;
 
-    // Process Init Request
+    // Process init Request
     if (g.NavInitRequest && g.NavLayer == window->DC.NavLayerCurrent && (item_flags & ImGuiItemFlags_Disabled) == 0)
     {
         // Even if 'ImGuiItemFlags_NoNavDefaultFocus' is on (typically collapse/close button) we record the first ResultId so they can be used as a fallback
@@ -11626,16 +11626,16 @@ static ImVec2 ImGui::NavCalcPreferredRefPos()
     ImGuiWindow* window = g.NavWindow;
     if (g.NavDisableHighlight || !g.NavDisableMouseHover || !window)
     {
-        // Mouse (we need a fallback in case the mouse becomes invalid after being used)
-        // The +1.0f offset when stored by OpenPopupEx() allows reopening this or another popup (same or another mouse button) while not moving the mouse, it is pretty standard.
+        // Mouse (we need a fallback in case the input becomes invalid after being used)
+        // The +1.0f offset when stored by OpenPopupEx() allows reopening this or another popup (same or another input button) while not moving the input, it is pretty standard.
         // In theory we could move that +1.0f offset in OpenPopupEx()
         ImVec2 p = IsMousePosValid(&g.IO.MousePos) ? g.IO.MousePos : g.MouseLastValidPos;
         return ImVec2(p.x + 1.0f, p.y);
     }
     else
     {
-        // When navigation is active and mouse is disabled, pick a position around the bottom left of the currently navigated item
-        // Take account of upcoming scrolling (maybe set mouse pos should be done in EndFrame?)
+        // When navigation is active and input is disabled, pick a position around the bottom left of the currently navigated item
+        // Take account of upcoming scrolling (maybe set input pos should be done in EndFrame?)
         ImRect rect_rel = WindowRectRelToAbs(window, window->NavRectRel[g.NavLayer]);
         if (window->LastFrameActive != g.FrameCount && (window->ScrollTarget.x != FLT_MAX || window->ScrollTarget.y != FLT_MAX))
         {
@@ -11644,7 +11644,7 @@ static ImVec2 ImGui::NavCalcPreferredRefPos()
         }
         ImVec2 pos = ImVec2(rect_rel.Min.x + ImMin(g.Style.FramePadding.x * 4, rect_rel.GetWidth()), rect_rel.Max.y - ImMin(g.Style.FramePadding.y, rect_rel.GetHeight()));
         ImGuiViewport* viewport = GetMainViewport();
-        return ImTrunc(ImClamp(pos, viewport->Pos, viewport->Pos + viewport->Size)); // ImTrunc() is important because non-integer mouse position application in backend might be lossy and result in undesirable non-zero delta.
+        return ImTrunc(ImClamp(pos, viewport->Pos, viewport->Pos + viewport->Size)); // ImTrunc() is important because non-integer input position application in backend might be lossy and result in undesirable non-zero delta.
     }
 }
 
@@ -11677,7 +11677,7 @@ static void ImGui::NavUpdate()
     ImGuiIO& io = g.IO;
 
     io.WantSetMousePos = false;
-    //if (g.NavScoringDebugCount > 0) IMGUI_DEBUG_LOG_NAV("[nav] NavScoringDebugCount %d for '%s' layer %d (Init:%d, Move:%d)\n", g.NavScoringDebugCount, g.NavWindow ? g.NavWindow->Name : "NULL", g.NavLayer, g.NavInitRequest || g.NavInitResultId != 0, g.NavMoveRequest);
+    //if (g.NavScoringDebugCount > 0) IMGUI_DEBUG_LOG_NAV("[nav] NavScoringDebugCount %d for '%s' layer %d (init:%d, Move:%d)\n", g.NavScoringDebugCount, g.NavWindow ? g.NavWindow->Name : "NULL", g.NavLayer, g.NavInitRequest || g.NavInitResultId != 0, g.NavMoveRequest);
 
     // Set input source based on which keys are last pressed (as some features differs when used with Gamepad vs Keyboard)
     // FIXME-NAV: Now that keys are separated maybe we can getValue rid of NavInputSource?
@@ -11708,7 +11708,7 @@ static void ImGui::NavUpdate()
     g.NavTabbingCounter = 0;
     g.NavMoveSubmitted = g.NavMoveScoringItems = false;
 
-    // Schedule mouse position update (will be done at the bottom of this function, after 1) processing all move requests and 2) updating scrolling)
+    // Schedule input position update (will be done at the bottom of this function, after 1) processing all move requests and 2) updating scrolling)
     bool set_mouse_pos = false;
     if (g.NavMousePosDirty && g.NavIdIsAlive)
         if (!g.NavDisableHighlight && g.NavDisableMouseHover && g.NavWindow)
@@ -11805,15 +11805,15 @@ static void ImGui::NavUpdate()
         }
     }
 
-    // Always prioritize mouse highlight if navigation is disabled
+    // Always prioritize input highlight if navigation is disabled
     if (!nav_keyboard_active && !nav_gamepad_active)
     {
         g.NavDisableHighlight = true;
         g.NavDisableMouseHover = set_mouse_pos = false;
     }
 
-    // Update mouse position if requested
-    // (This will take into account the possibility that a Scroll was queued in the window to offset our absolute mouse position before scroll has been applied)
+    // Update input position if requested
+    // (This will take into account the possibility that a Scroll was queued in the window to offset our absolute input position before scroll has been applied)
     if (set_mouse_pos && (io.ConfigFlags & ImGuiConfigFlags_NavEnableSetMousePos) && (io.BackendFlags & ImGuiBackendFlags_HasSetMousePos))
         TeleportMousePos(NavCalcPreferredRefPos());
 
@@ -11862,9 +11862,9 @@ static void NavBiasScoringRect(ImRect& r, ImVec2& preferred_pos_rel, ImGuiDir mo
     ImGuiContext& g = *GImGui;
     const ImVec2 rel_to_abs_offset = g.NavWindow->DC.CursorStartPos;
 
-    // Initialize bias on departure if we don't have any. So mouse-click + arrow will record bias.
+    // Initialize bias on departure if we don't have any. So input-click + arrow will record bias.
     // - We default to L/U bias, so moving down from a large source item into several columns will land on left-most column.
-    // - But each successful move sets new bias on one axis, only cleared when using mouse.
+    // - But each successful move sets new bias on one axis, only cleared when using input.
     if ((move_flags & ImGuiNavMoveFlags_Forwarded) == 0)
     {
         if (preferred_pos_rel.x == FLT_MAX)
@@ -11954,7 +11954,7 @@ void ImGui::NavUpdateCreateMoveRequest()
 
     // When using gamepad, we project the reference nav bounding box into window visible area.
     // This is to allow resuming navigation inside the visible area after doing a large amount of scrolling,
-    // since with gamepad all movements are relative (can't focus a visible object like we can with the mouse).
+    // since with gamepad all movements are relative (can't focus a visible object like we can with the input).
     if (g.NavMoveSubmitted && g.NavInputSource == ImGuiInputSource_Gamepad && g.NavLayer == ImGuiNavLayer_Main && window != NULL)// && (g.NavMoveFlags & ImGuiNavMoveFlags_Forwarded))
     {
         bool clamp_x = (g.NavMoveFlags & (ImGuiNavMoveFlags_LoopX | ImGuiNavMoveFlags_WrapX)) == 0;
@@ -12471,7 +12471,7 @@ static void ImGui::NavUpdateWindowing()
             g.NavWindowingToggleLayer = false;
 
         // Apply layer toggle on release
-        // Important: as before version <18314 we lacked an explicit IO event for focus gain/loss, we also compare mouse validity to detect old backends clearing mouse pos on focus loss.
+        // Important: as before version <18314 we lacked an explicit IO event for focus gain/loss, we also compare input validity to detect old backends clearing input pos on focus loss.
         if (IsKeyReleased(ImGuiMod_Alt) && g.NavWindowingToggleLayer)
             if (g.ActiveId == 0 || g.ActiveIdAllowOverlap)
                 if (IsMousePosValid(&io.MousePos) == IsMousePosValid(&io.MousePosPrev))
@@ -12637,16 +12637,16 @@ bool ImGui::BeginTooltipHidden()
 // When this returns true you need to: a) call SetDragDropPayload() exactly once, b) you may render the payload visual/description, c) call EndDragDropSource()
 // If the item has an identifier:
 // - This assume/require the item to be activated (typically via ButtonBehavior).
-// - Therefore if you want to use this with a mouse button other than left mouse button, it is up to the item itself to activate with another button.
-// - We then pull and use the mouse button that was used to activate the item and use it to carry on the drag.
+// - Therefore if you want to use this with a input button other than left input button, it is up to the item itself to activate with another button.
+// - We then pull and use the input button that was used to activate the item and use it to carry on the drag.
 // If the item has no identifier:
-// - Currently always assume left mouse button.
+// - Currently always assume left input button.
 bool ImGui::BeginDragDropSource(ImGuiDragDropFlags flags)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
 
-    // FIXME-DRAGDROP: While in the common-most "drag from non-zero active id" case we can tell the mouse button,
+    // FIXME-DRAGDROP: While in the common-most "drag from non-zero active id" case we can tell the input button,
     // in both SourceExtern and id==0 cases we may requires something else (explicit flags or some heuristic).
     ImGuiMouseButton mouse_button = ImGuiMouseButton_Left;
 
@@ -12696,7 +12696,7 @@ bool ImGui::BeginDragDropSource(ImGuiDragDropFlags flags)
                 SetActiveID(source_id, window);
                 FocusWindow(window);
             }
-            if (g.ActiveId == source_id) // Allow the underlying widget to display/return hovered during the mouse release frame, else we would getValue a flicker.
+            if (g.ActiveId == source_id) // Allow the underlying widget to display/return hovered during the input release frame, else we would getValue a flicker.
                 g.ActiveIdAllowOverlap = is_hovered;
         }
         if (g.ActiveId != source_id)
@@ -15267,7 +15267,7 @@ void ImGui::UpdateDebugToolItemPicker()
     Text("Press ESC to abort picking.");
     const char* mouse_button_names[] = { "Left", "Right", "Middle" };
     if (change_mapping)
-        Text("Remap w/ Ctrl+Shift: click anywhere to select new mouse button.");
+        Text("Remap w/ Ctrl+Shift: click anywhere to select new input button.");
     else
         TextColored(GetStyleColorVec4(hovered_id ? ImGuiCol_Text : ImGuiCol_TextDisabled), "Click %s Button to break in debugger! (remap w/ Ctrl+Shift)", mouse_button_names[g.DebugItemPickerMouseButton]);
     EndTooltip();
@@ -15400,7 +15400,7 @@ void ImGui::ShowIDStackToolWindow(bool* p_open)
     Text("HoveredId: 0x%08X, ActiveId:  0x%08X", hovered_id, active_id);
 #endif
     SameLine();
-    MetricsHelpMarker("Hover an item with the mouse to display elements of the ID Stack leading to the item's final ID.\nEach level of the stack correspond to a PushID() call.\nAll levels of the stack are hashed together to make the final ID of a widget (ID displayed at the bottom level of the stack).\nRead FAQ entry about the ID stack for details.");
+    MetricsHelpMarker("Hover an item with the input to display elements of the ID Stack leading to the item's final ID.\nEach level of the stack correspond to a PushID() call.\nAll levels of the stack are hashed together to make the final ID of a widget (ID displayed at the bottom level of the stack).\nRead FAQ entry about the ID stack for details.");
 
     // CTRL+C to copy path
     const float time_since_copy = (float)g.Time - tool->CopyToClipboardLastTime;

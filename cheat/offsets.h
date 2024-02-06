@@ -3,9 +3,9 @@
 #define STEAM
 namespace offsets {
 #ifdef STEAM
-    DWORD gWorld = 0x7022078; // Old: 0x7033488
-    DWORD gNames = 0x6EA1840; // Old: 0x6EBB780
-    DWORD gObject = 0x6ED17A0; // Old: 0x6ED40E0
+    DWORD gWorld = 0x7023068;
+    DWORD gNames = 0x6EA2840;
+    DWORD gObject = 0x6ED2790;
 #elifdef STANDALONE
     DWORD gWorld = 0x70220B8; // Old: 0x7033488
     DWORD gNames = 0x6EA1880; // Old: 0x6EBB780
@@ -64,6 +64,12 @@ namespace offsets {
     /// Class /Script/Engine.Player
     DWORD pRootComponent = 0x0138; //USceneComponent
 
+    /// Class /Script/Solarland.SolarVehiclePawn
+    DWORD vRootComponent = 0x02D0; //UPrimitiveComponent
+    DWORD vVehicleMesh = 0x02D8; //UPrimitiveComponent
+    DWORD vVehicleID = 0x02E0; //uint32_t
+    DWORD vSeatSlots = 0x0378; //TArray<FVehicleSeatSlot>
+
     /// Class /Script/Engine.SceneComponent
     DWORD scRelativeLocation = 0x011C; //FVector
     DWORD scRelativeRotation = 0x0128; //FRotator
@@ -78,10 +84,13 @@ namespace offsets {
 
     /// Class /Script/Engine.Pawn
     DWORD pPlayerState = 0x0248; //APlayerState
+    DWORD pController = 0x0260; //APlayerState
     DWORD pWeaponSystemComponent = 0x1CC0; //WeaponSystemComponent
 
     /// Class /Script/Engine.Character
     DWORD cMesh = 0x0288; //USkeletalMeshComponent
+    DWORD cCharacterMovement = 0x0290; //UCharacterMovementComponent
+    DWORD cCapsuleComponent = 0x0298; //UCharacterMovementComponent
 
     /// Class /Script/Engine.PlayerCameraManager
     DWORD pcmTransformComponent = 0x0230; //USceneComponent
@@ -89,6 +98,7 @@ namespace offsets {
     DWORD pcmCameraCachePrivate = 0x1C70; //FCameraCacheEntry
 
     /// Class /Script/Solarland.SolarPlayerState
+    DWORD spsId = 0x022C; //int32_t
     DWORD spsGold = 0x0380; //int32_t
     DWORD spsCharacterId = 0x03A8; //int32_t
     DWORD spsSkinId = 0x03AC; //int32_t

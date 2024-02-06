@@ -115,7 +115,7 @@
 //#define ImDrawCallback MyImDrawCallback
 
 //---- Debug Tools: Macro to break in Debugger (we provide a default implementation of this in the codebase)
-// (use 'Metrics->Tools->Item Picker' to pick widgets with the mouse and break into them for easy debugging.)
+// (use 'Metrics->Tools->Item Picker' to pick widgets with the input and break into them for easy debugging.)
 //#define IM_DEBUG_BREAK  IM_ASSERT(0)
 //#define IM_DEBUG_BREAK  __debugbreak()
 

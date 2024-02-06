@@ -26,11 +26,16 @@ add_executable(Farlight
         cheat/offsets.h
         solarland/solar_struct.h
         solarland/solar_enum.h
-        utils/input.h
         utils/f_math.h
         utils/strings.h
         cheat/solarland.h
         cheat/images.h
+        imgui/font_awesome.h
+        cheat/solar_enum.h
+        ue/utils.h
+        ue/unreal.h
+        utils/mouse_controller.cpp
+        utils/mouse_controller.h
 )
 
-target_link_libraries(Farlight PRIVATE d3d11.lib d3d9.lib dwmapi.lib d3dcompiler.lib d3dx9.lib)
+target_link_libraries(Farlight PRIVATE d3d11.lib d3d9.lib dwmapi.lib d3dcompiler.lib d3dx9.lib ntdll.lib)

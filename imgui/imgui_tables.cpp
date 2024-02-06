@@ -40,7 +40,7 @@ Index of this file:
 //    | TableResetSettings()                    - on settings reset
 //    | TableLoadSettings()                     - on settings load
 //    | TableBeginApplyRequests()               - apply queued resizing/reordering/hiding requests
-//    | - TableSetColumnWidth()                 - apply resizing width (for mouse resize, often requested by previous frame)
+//    | - TableSetColumnWidth()                 - apply resizing width (for input resize, often requested by previous frame)
 //    |    - TableUpdateColumnsWeightFromWidth()- recompute columns weights (of stretch columns) from their respective width
 // - TableSetupColumn()                         user submit columns details (optional)
 // - TableSetupScrollFreeze()                   user submit scroll freeze information (optional)
@@ -1543,7 +1543,7 @@ void ImGui::TableSetupColumn(const char* label, ImGuiTableColumnFlags flags, flo
     column->InitStretchWeightOrWidth = init_width_or_weight;
     if (table->IsInitializing)
     {
-        // Init width or weight
+        // init width or weight
         if (column->WidthRequest < 0.0f && column->StretchWeight < 0.0f)
         {
             if ((flags & ImGuiTableColumnFlags_WidthFixed) && init_width_or_weight > 0.0f)
@@ -1556,7 +1556,7 @@ void ImGui::TableSetupColumn(const char* label, ImGuiTableColumnFlags flags, flo
                 column->AutoFitQueue = 0x00;
         }
 
-        // Init default visibility/sort state
+        // init default visibility/sort state
         if ((flags & ImGuiTableColumnFlags_DefaultHide) && (table->SettingsLoadedFlags & ImGuiTableFlags_Hideable) == 0)
             column->IsUserEnabled = column->IsUserEnabledNextFrame = false;
         if (flags & ImGuiTableColumnFlags_DefaultSort && (table->SettingsLoadedFlags & ImGuiTableFlags_Sortable) == 0)
@@ -3091,7 +3091,7 @@ void ImGui::TableHeader(const char* label)
     // FIXME-TABLE: Scroll request while reordering a column and it lands out of the scrolling zone.
     if (held && (table->Flags & ImGuiTableFlags_Reorderable) && IsMouseDragging(0) && !g.DragDropActive)
     {
-        // While moving a column it will jump on the other side of the mouse, so we also test for MouseDelta.x
+        // While moving a column it will jump on the other side of the input, so we also test for MouseDelta.x
         table->ReorderColumn = (ImGuiTableColumnIdx)column_n;
         table->InstanceInteracted = table->InstanceCurrent;
 
@@ -3418,7 +3418,7 @@ void ImGui::TableDrawDefaultContextMenu(ImGuiTable* table, ImGuiTableFlags flags
 // - TableSettingsHandler_WriteAll() [Internal]
 // - TableSettingsInstallHandler() [Internal]
 //-------------------------------------------------------------------------
-// [Init] 1: TableSettingsHandler_ReadXXXX()   Load and parse .ini file into TableSettings.
+// [init] 1: TableSettingsHandler_ReadXXXX()   Load and parse .ini file into TableSettings.
 // [Main] 2: TableLoadSettings()               When table is created, bind Table to TableSettings, serialize TableSettings data into Table.
 // [Main] 3: TableSaveSettings()               When table properties are modified, serialize Table data into bound or new TableSettings, mark .ini as dirty.
 // [Main] 4: TableSettingsHandler_WriteAll()   When .ini file is dirty (which can come from other source), save TableSettings into .ini file.
@@ -3966,7 +3966,7 @@ static const float COLUMNS_HIT_RECT_HALF_WIDTH = 4.0f;
 
 static float GetDraggedColumnOffset(ImGuiOldColumns* columns, int column_index)
 {
-    // Active (dragged) column always follow mouse. The reason we need this is that dragging a column to the right edge of an auto-resizing
+    // Active (dragged) column always follow input. The reason we need this is that dragging a column to the right edge of an auto-resizing
     // window creates a feedback loop because we store normalized positions. So while dragging we enforce absolute positioning.
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;

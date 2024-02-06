@@ -171,3 +171,87 @@ enum EZiplineMoveState : uint8_t {
     ZiplineMoveState_PreStart = 1,
     ZiplineMoveState_OnZipline = 2
 };
+
+enum ETalentState : uint8_t
+{
+    TalentState_Activating                                                        = 0,
+    TalentState_CoolingDown                                                       = 1,
+    TalentState_Unactivated                                                       = 2,
+    TalentState_Invalid                                                           = 3
+};
+
+enum class ECommonInputType : uint8_t
+{
+    InputType_MouseAndKeyboard               = 0,
+    InputType_Gamepad                        = 1,
+    InputType_Touch                          = 2,
+    InputType_Count                          = 3
+};
+
+
+enum EPlayerNetStateInGame : uint8_t
+{
+    NetStateInGame_None0                                                     = 0,
+    NetStateInGame_Online1                                                   = 1,
+    NetStateInGame_Offline2                                                  = 2
+};
+
+enum ESkydivingState : uint8_t
+{
+    SkydivingState_NotStarted0                                                     = 0,
+    SkydivingState_PreStart1                                                       = 1,
+    SkydivingState_InProgress2                                                     = 2,
+    SkydivingState_Completed3                                                      = 3
+};
+
+enum EMatchResult : uint8_t
+{
+    MatchResult_None                                                              = 0,
+    MatchResult_Victory                                                           = 1,
+    MatchResult_Fail                                                              = 2,
+    MatchResult_Draw                                                              = 3
+};
+
+enum EPlayerWeaponEquipStatus : uint8_t {
+    WeaponEquipStatus_None = 0,
+    WeaponEquipStatus_Holding = 1,
+    WeaponEquipStatus_PendingToHang = 2,
+    WeaponEquipStatus_Hanging = 3
+};
+
+enum EWeaponId : int32_t {
+    EWeaponId_Invader = 11001,
+    EWeaponId_Hound = 12001,
+    EWeaponId_WhiteDwarf = 13001,
+    EWeaponId_Bar95 = 14001,
+    EWeaponId_Defender = 15001,
+    EWeaponId_Dikobraz = 16001,
+    EWeaponId_Generator = 17001,
+    EWeaponId_MF18 = 18001,
+    EWeaponId_M4 = 19001,
+    EWeaponId_UMP99 = 20001,
+    EWeaponId_StellarWind = 21001,
+    EWeaponId_Fanatic = 22001,
+    EWeaponId_AK = 23001,
+    EWeaponId_MadRabbit = 24001,
+    EWeaponId_Jupiter = 25001,
+    EWeaponId_MadRat = 27001,
+    EWeaponId_VSS = 28001,
+    EWeaponId_Rhino = 29001,
+    EWeaponId_Vega = 30001,
+    EWeaponId_MG7 = 31001,
+    EWeaponId_UZI = 32001
+};
+
+
+
+enum EEntityType : uint8_t {
+    UNKNOWN_ENTITY = 99,
+    CHARACTER = 0, //ASolarCharacter
+    LOCAL_CHARACTER = 1, //ASolarCharacter
+    LOBBY_CHARACTER = 2, //ASolarLobbyCharacter
+    VEHICLE = 3, //ASolarVehiclePawn
+    OBJECT = 4, //ASummonItemBase
+    ITEM = 5, //ASummonItemBase
+    ITEM_BOX = 6 //ASummonItemBase
+};

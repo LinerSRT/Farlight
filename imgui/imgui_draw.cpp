@@ -2890,7 +2890,7 @@ void ImFontAtlasBuildInit(ImFontAtlas* atlas)
     for (ImFontConfig& cfg : atlas->ConfigData)
        cfg.SizePixels = ImTrunc(cfg.SizePixels);
 
-    // Register texture region for mouse cursors or standard white pixels
+    // Register texture region for input cursors or standard white pixels
     if (atlas->PackIdMouseCursors < 0)
     {
         if (!(atlas->Flags & ImFontAtlasFlags_NoMouseCursors))

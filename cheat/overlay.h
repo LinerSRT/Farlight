@@ -12,10 +12,14 @@
 #include <functional>
 #include <array>
 #include <d3dx9.h>
+#include <random>
 #include "../imgui/font_awesome.h"
 #include "../imgui/imgui.h"
 #include "../imgui/imgui_impl_dx9.h"
 #include "../imgui/imgui_impl_win32.h"
+#include "../utils/mouse_controller.h"
+#define ICON_WIDTH 64
+#define ICON_HEIGHT 32
 
 typedef struct Farlight {
     HWND window = nullptr;
@@ -319,8 +323,10 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam) 
                 D3D::parameters.BackBufferWidth = LOWORD(lParam);
                 D3D::parameters.BackBufferHeight = HIWORD(lParam);
                 HRESULT hr = D3D::device->Reset(&D3D::parameters);
-                if (hr == D3DERR_INVALIDCALL)
-                    IM_ASSERT(0);
+                if (hr == D3DERR_INVALIDCALL){
+                    input::unInit();
+                    exit(4);
+                }
                 ImGui_ImplDX9_CreateDeviceObjects();
             }
             break;
@@ -332,8 +338,22 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam) 
 }
 
 
+std::string randomString(std::string::size_type length) {
+    static auto &charset = "0123456789"
+                           "abcdefghijklmnopqrstuvwxyz"
+                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    thread_local static std::mt19937 rg{std::random_device{}()};
+    thread_local static std::uniform_int_distribution<std::string::size_type> pick(0, sizeof(charset) - 2);
+    std::string s;
+    s.reserve(length);
+    while (length--)
+        s += charset[pick(rg)];
+    return s;
+}
+
 void setupOverlay() {
-    Overlay::name = "FTLDebug";
+    input::init();
+    Overlay::name = randomString(30).c_str();
     Overlay::className = {
             sizeof(WNDCLASSEX), 0, WinProc, 0, 0, nullptr, LoadIcon(nullptr, IDI_APPLICATION),
             LoadCursor(nullptr, IDC_ARROW), nullptr, nullptr, Overlay::name, LoadIcon(nullptr, IDI_APPLICATION)
@@ -596,19 +616,19 @@ ImVec4 drawText(const std::string &text, ImVec2 position, TextOptions textOption
             backgroundStart = ImVec2(position.x - width, position.y - height / 2);
             break;
         case END:
-            backgroundStart = ImVec2(position.x + width, position.y - height / 2);
+            backgroundStart = ImVec2(position.x , position.y - height / 2);
             break;
         case TOP_START:
             backgroundStart = ImVec2(position.x - width, position.y - height);
             break;
         case TOP_END:
-            backgroundStart = ImVec2(position.x + width, position.y - height);
+            backgroundStart = ImVec2(position.x, position.y - height);
             break;
         case BOTTOM_START:
             backgroundStart = ImVec2(position.x - width, position.y + height);
             break;
         case BOTTOM_END:
-            backgroundStart = ImVec2(position.x + width, position.y + height);
+            backgroundStart = ImVec2(position.x , position.y );
             break;
     }
     ImVec2 textStart = ImVec2(backgroundStart.x + textOptions.padding / 2, backgroundStart.y + textOptions.padding / 2);
@@ -622,5 +642,26 @@ ImVec4 drawText(const std::string &text, ImVec2 position, TextOptions textOption
     }
     drawText(text, textStart.x, textStart.y, textOptions.fontSize, textOptions.color, false);
     return {backgroundStart.x, backgroundStart.y, backgroundStart.x + width, backgroundStart.y + height};
+}
+
+void drawVerticalProgressBar(float x, float y, float barWidth, float barHeight, float percentage, ImColor color){
+    drawRectFilled(
+            x,
+            y - barHeight,
+            x + barWidth,
+            y,
+            ImColor(23, 23, 23, 120),
+            6,
+            ImDrawFlags_RoundCornersAll
+    );
+    drawRectFilled(
+            x,
+            y - (barHeight * percentage),
+            x + barWidth,
+            y,
+            color,
+            6,
+            ImDrawFlags_RoundCornersAll
+    );
 }
 

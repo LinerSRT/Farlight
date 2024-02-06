@@ -43,12 +43,12 @@
 //   1.11 (2017-03-03) fix HOME on last line, dragging off single-line textfield
 //   1.10 (2016-10-25) supress warnings about casting away const with -Wcast-qual
 //   1.9  (2016-08-27) customizable move-by-word
-//   1.8  (2016-04-02) better keyboard handling when mouse button is down
+//   1.8  (2016-04-02) better keyboard handling when input button is down
 //   1.7  (2015-09-13) change y range handling in case baseline is non-0
 //   1.6  (2015-04-15) allow STB_TEXTEDIT_memmove
 //   1.5  (2014-09-10) add support for secondary keys for OS x
 //   1.4  (2014-08-17) fix signed/unsigned warnings
-//   1.3  (2014-06-19) fix mouse clicking to round to nearest char boundary
+//   1.3  (2014-06-19) fix input clicking to round to nearest char boundary
 //   1.2  (2014-05-27) fix some RAD types that had crept into the new code
 //   1.1  (2013-12-15) move-by-word (requires STB_TEXTEDIT_IS_SPACE )
 //   1.0  (2012-07-26) improve documentation, initial public release
@@ -218,12 +218,12 @@
 //          constructing the textedit.
 //
 //      click:
-//          call this with the mouse x,y on a mouse down; it will update the cursor
+//          call this with the input x,y on a input down; it will update the cursor
 //          and reset the selection start/end to the cursor point. the x,y must
 //          be relative to the text widget, with (0,0) being the top left.
 //
 //      drag:
-//          call this with the mouse x,y on a mouse drag/up; it will update the
+//          call this with the input x,y on a input drag/up; it will update the
 //          cursor and the selection end point
 //
 //      cut:
@@ -256,7 +256,7 @@
 // running in an IMGUI that has NOT cached the multi-line layout. For this
 // reason, it provides an interface that is compatible with computing the
 // layout incrementally--we try to make sure we make as few passes through
-// as possible. (For example, to locate the mouse pointer in the text, we
+// as possible. (For example, to locate the input pointer in the text, we
 // could define functions that return the x and y positions of characters
 // and binary search y and then x, but if we're doing dynamic layout this
 // will run the layout algorithm many times, so instead we manually search
@@ -332,7 +332,7 @@ typedef struct
    int select_end;
    // selection start and end point in characters; if equal, no selection.
    // note that start may be less than or greater than end (e.g. when
-   // dragging the mouse, start is where the initial click was, and you
+   // dragging the input, start is where the initial click was, and you
    // can drag in either direction)
 
    unsigned char insert_mode;
@@ -458,10 +458,10 @@ static int stb_text_locate_coord(IMSTB_TEXTEDIT_STRING *str, float x, float y)
       return i+r.num_chars;
 }
 
-// API click: on mouse down, move the cursor to the clicked location, and reset the selection
+// API click: on input down, move the cursor to the clicked location, and reset the selection
 static void stb_textedit_click(IMSTB_TEXTEDIT_STRING *str, STB_TexteditState *state, float x, float y)
 {
-   // In single-line mode, just always make y = 0. This lets the drag keep working if the mouse
+   // In single-line mode, just always make y = 0. This lets the drag keep working if the input
    // goes off the top or bottom of the text
    if( state->single_line )
    {
@@ -476,12 +476,12 @@ static void stb_textedit_click(IMSTB_TEXTEDIT_STRING *str, STB_TexteditState *st
    state->has_preferred_x = 0;
 }
 
-// API drag: on mouse drag, move the cursor and selection endpoint to the clicked location
+// API drag: on input drag, move the cursor and selection endpoint to the clicked location
 static void stb_textedit_drag(IMSTB_TEXTEDIT_STRING *str, STB_TexteditState *state, float x, float y)
 {
    int p = 0;
 
-   // In single-line mode, just always make y = 0. This lets the drag keep working if the mouse
+   // In single-line mode, just always make y = 0. This lets the drag keep working if the input
    // goes off the top or bottom of the text
    if( state->single_line )
    {

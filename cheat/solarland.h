@@ -1,11 +1,6 @@
 #include "../ue/engine.h"
 
-enum EPlayerWeaponEquipStatus : uint8_t {
-    None = 0,
-    Holding = 1,
-    PendingToHang = 2,
-    Hanging = 3
-};
+
 struct FPlayerWeaponEquipStatusInfo {
     EPlayerWeaponEquipStatus PrimaryWeaponStatus;
     EPlayerWeaponEquipStatus SecondaryWeaponStatus;
@@ -14,42 +9,318 @@ struct FPlayerWeaponEquipStatusInfo {
 };
 
 
+class GameEntity {
+public:
+    DWORD_PTR address;
+    DWORD_PTR pawn;
+    DWORD_PTR controller;
+    DWORD_PTR state;
+    DWORD_PTR rootComponent;
+    DWORD_PTR skeletonMesh;
+    DWORD_PTR movement;
+    DWORD_PTR capsule;
+    DWORD_PTR weaponSystemComponent;
+    DWORD_PTR teamInfo;
+    EEntityType entityType;
+public:
+    GameEntity() : address(0), entityType(UNKNOWN_ENTITY) {}
 
+    GameEntity(DWORD_PTR address, EEntityType entityType) : address(address), entityType(entityType) {
+        switch (entityType) {
+            case CHARACTER:
+            case LOBBY_CHARACTER:
+                pawn = address;
+                controller = read<DWORD_PTR>(pawn + offsets::pController);
+                state = read<DWORD_PTR>(pawn + offsets::pPlayerState);
+                rootComponent = read<DWORD_PTR>(pawn + offsets::pRootComponent);
+                skeletonMesh = read<DWORD_PTR>(pawn + offsets::cMesh);
+                movement = read<DWORD_PTR>(pawn + offsets::cCharacterMovement);
+                capsule = read<DWORD_PTR>(pawn + offsets::cCapsuleComponent);
+                weaponSystemComponent = read<DWORD_PTR>(pawn + offsets::pWeaponSystemComponent);
+                weaponSystemComponent = read<DWORD_PTR>(state + offsets::spsTeam);
+                break;
+            case LOCAL_CHARACTER:
+                controller = read<DWORD_PTR>(address + offsets::pPlayerController);
+                pawn = read<DWORD_PTR>(controller + offsets::pcAcknowledgedPawn);
+                state = read<DWORD_PTR>(pawn + offsets::pPlayerState);
+                rootComponent = read<DWORD_PTR>(pawn + offsets::pRootComponent);
+                skeletonMesh = read<DWORD_PTR>(pawn + offsets::cMesh);
+                movement = read<DWORD_PTR>(pawn + offsets::cCharacterMovement);
+                capsule = read<DWORD_PTR>(pawn + offsets::cCapsuleComponent);
+                weaponSystemComponent = read<DWORD_PTR>(pawn + offsets::pWeaponSystemComponent);
+                weaponSystemComponent = read<DWORD_PTR>(state + offsets::spsTeam);
+                break;
+            case VEHICLE:
+                pawn = address;
+                skeletonMesh = read<DWORD_PTR>(pawn + offsets::vVehicleMesh);
+                rootComponent = read<DWORD_PTR>(pawn + offsets::vRootComponent);
+                break;
+            case OBJECT:
+            case ITEM:
+            case ITEM_BOX:
+            case UNKNOWN_ENTITY:
+                break;
+        }
+    }
 
-
-
-struct FWeaponDebugFlag {
-    bool bIgnoreActivated;                                           // 0x0000   (0x0001)
-    bool bExtraInfo;                                                 // 0x0001   (0x0001)
-    bool bMechanicalState;                                           // 0x0002   (0x0001)
-    bool bShowShootDir;                                              // 0x0003   (0x0001)
+    [[nodiscard]] bool isValid() const {
+        return entityType != UNKNOWN_ENTITY && address != 0;
+    }
 };
 
-enum EWeaponId : int32_t {
-    EWeaponId_Invader = 11001,
-    EWeaponId_Hound = 12001,
-    EWeaponId_WhiteDwarf = 13001,
-    EWeaponId_Bar95 = 14001,
-    EWeaponId_Defender = 15001,
-    EWeaponId_Dikobraz = 16001,
-    EWeaponId_Generator = 17001,
-    EWeaponId_MF18 = 18001,
-    EWeaponId_M4 = 19001,
-    EWeaponId_UMP99 = 20001,
-    EWeaponId_StellarWind = 21001,
-    EWeaponId_Fanatic = 22001,
-    EWeaponId_AK = 23001,
-    EWeaponId_MadRabbit = 24001,
-    EWeaponId_Jupiter = 25001,
-    EWeaponId_MadRat = 27001,
-    EWeaponId_VSS = 28001,
-    EWeaponId_Rhino = 29001,
-    EWeaponId_Vega = 30001,
-    EWeaponId_MG7 = 31001,
-    EWeaponId_UZI = 32001
+struct Character {
+    static int32_t getId(GameEntity entity) {
+        switch (entity.entityType) {
+            case CHARACTER:
+            case LOCAL_CHARACTER:
+                return read<int32_t>(entity.state + offsets::spsId);
+            default:
+                return -1;
+        }
+    }
+
+    static int32_t getSkinId(GameEntity entity) {
+        switch (entity.entityType) {
+            case CHARACTER:
+            case LOCAL_CHARACTER:
+                return read<int32_t>(entity.state + offsets::spsSkinId);
+            default:
+                return -1;
+        }
+    }
+
+    static float getHealth(GameEntity entity) {
+        switch (entity.entityType) {
+            case CHARACTER:
+            case LOCAL_CHARACTER:
+                return read<float>(entity.state + offsets::spsCurrentHealth);
+            default:
+                return 0;
+        }
+    }
+
+    static float getMaxHealth(GameEntity entity) {
+        switch (entity.entityType) {
+            case CHARACTER:
+            case LOCAL_CHARACTER:
+                return read<float>(entity.state + offsets::spsMaxHealth);
+            default:
+                return 0;
+        }
+    }
+
+    static bool isDead(GameEntity entity) {
+        return getHealth(entity) == 0 || getMaxHealth(entity) == 0;
+    }
+
+    static string getNickname(GameEntity entity) {
+        switch (entity.entityType) {
+            case CHARACTER:
+            case LOCAL_CHARACTER:
+                return read<FString>(entity.state + offsets::spsNickName).toString();
+            default:
+                return "Null";
+        }
+    }
+
+    static bool isTeamWith(GameEntity entity, GameEntity other) {
+        switch (entity.entityType) {
+            case CHARACTER:
+            case LOCAL_CHARACTER:
+                return entity.teamInfo == other.teamInfo;
+            default:
+                return false;
+        }
+    }
+
+    static bool hasUpdatedSkeleton(GameEntity entity) {
+        switch (entity.entityType) {
+            case CHARACTER:
+            case LOCAL_CHARACTER:
+                switch (getSkinId(entity)) {
+                    case 132700:
+                    case 132106:
+                    case 131005:
+                    case 131208:
+                    case 130210:
+                    case 132701:
+                    case 131800:
+                    case 131802:
+                    case 130607:
+                    case 130609:
+                    case 131505:
+                    case 132100:
+                    case 132702:
+                    case 120012:
+                    case 131306:
+                    case 120017:
+                        return true;
+                    default:
+                        return false;
+                }
+            default:
+                return false;
+        }
+
+    }
+
+    static FCameraCacheEntry getCameraCache(GameEntity entity) {
+        return read<FCameraCacheEntry>(read<DWORD_PTR>(entity.controller + offsets::pcPlayerCameraManager) + offsets::pcmCameraCachePrivate);
+    }
+
+    static FTransform getBoneIndex(GameEntity entity, int boneId) {
+        auto bones = read<DWORD_PTR>(entity.skeletonMesh + offsets::smcSkeletalMesh);
+        if (!bones)
+            bones = read<DWORD_PTR>((entity.skeletonMesh + offsets::smcSkeletalMesh) + 0x10);
+        return read<FTransform>(bones + (boneId * 0x30));
+    }
+
+    static FVector getBonePosition(GameEntity entity, int boneId) {
+        D3DMATRIX matrix = matrixMultiplication(getBoneIndex(entity, boneId).toMatrix(), read<FTransform>(entity.skeletonMesh + 0x250).toMatrix());
+        return {matrix._41, matrix._42, matrix._43};
+    }
+
+    static FVector getWorldHeadPosition(GameEntity entity, float offset) {
+        auto position = getBonePosition(entity, hasUpdatedSkeleton(entity) ? 51 : 46);
+        position.z += offset;
+        return position;
+    }
+
+    static FVector getWorldHeadPosition(GameEntity entity) {
+        return getWorldHeadPosition(entity, 0);
+    }
+
+    static FVector getWorldPosition(GameEntity entity) {
+        return getBonePosition(entity, 0);
+    }
+
+    static FVector getCameraPosition(GameEntity entity) {
+        return getCameraCache(entity).minimalViewInfo.location;
+    }
+
+    static bool isWeaponSlotUsed(GameEntity entity, int slot) {
+        auto weaponEquipStatusInfo = read<FPlayerWeaponEquipStatusInfo>(entity.weaponSystemComponent + offsets::playerWeaponEquipStatusInfo);
+        switch (slot) {
+            case 0:
+                return weaponEquipStatusInfo.PrimaryWeaponStatus == EPlayerWeaponEquipStatus::WeaponEquipStatus_Holding;
+            case 1:
+                return weaponEquipStatusInfo.SecondaryWeaponStatus == EPlayerWeaponEquipStatus::WeaponEquipStatus_Holding;
+            case 2:
+                return weaponEquipStatusInfo.TertiaryWeaponStatus == EPlayerWeaponEquipStatus::WeaponEquipStatus_Holding;
+            default:
+                return false;
+        }
+    }
+
+    static bool hasWeapon(GameEntity entity, int slot) {
+        auto weaponEquipStatusInfo = read<FPlayerWeaponEquipStatusInfo>(entity.weaponSystemComponent + offsets::playerWeaponEquipStatusInfo);
+        switch (slot) {
+            case 0:
+                return weaponEquipStatusInfo.PrimaryWeaponStatus != EPlayerWeaponEquipStatus::WeaponEquipStatus_None;
+            case 1:
+                return weaponEquipStatusInfo.SecondaryWeaponStatus != EPlayerWeaponEquipStatus::WeaponEquipStatus_None;
+            case 2:
+                return weaponEquipStatusInfo.TertiaryWeaponStatus != EPlayerWeaponEquipStatus::WeaponEquipStatus_None;
+            default:
+                return false;
+        }
+    }
+
+    static bool hasAnyWeapon(GameEntity entity) {
+        return hasWeapon(entity, 0) || hasWeapon(entity, 1) || hasWeapon(entity, 2);
+    }
+
+    static bool holdingWeapon(GameEntity entity) {
+        return isWeaponSlotUsed(entity, 0) || isWeaponSlotUsed(entity, 1) || isWeaponSlotUsed(entity, 2);
+    }
+
+    static DWORD_PTR getActiveWeapon(GameEntity entity) {
+        if (isWeaponSlotUsed(entity, 0))
+            return WeakPtr::get(read<DWORD_PTR>(entity.weaponSystemComponent + offsets::wspPrimarySlotInfo));
+        if (isWeaponSlotUsed(entity, 1))
+            return WeakPtr::get(read<DWORD_PTR>(entity.weaponSystemComponent + offsets::wspSecondarySlotInfo));
+        if (isWeaponSlotUsed(entity, 2))
+            return WeakPtr::get(read<DWORD_PTR>(entity.weaponSystemComponent + offsets::wspTertiarySlotInfo));
+        return 0;
+    }
+
+    static DWORD_PTR getWeaponConfig(GameEntity entity) {
+        if (holdingWeapon(entity))
+            return read<DWORD_PTR>(getActiveWeapon(entity) + offsets::spwWeaponConfig);
+        return 0;
+    }
+
+    static DWORD_PTR getAmmoConfig(GameEntity entity) {
+        if (holdingWeapon(entity))
+            return read<DWORD_PTR>(getWeaponConfig(entity) + 0x0120);
+        return 0;
+    }
+
+    static EWeaponMechanicalUniqueState getActiveWeaponState(GameEntity entity) {
+        return read<FWeaponMechanicalState>(getActiveWeapon(entity) + 0x0308).uniqueState;
+    }
+
+    static bool isWeaponDetectEnemy(GameEntity entity) {
+        return holdingWeapon(entity) && read<bool>(getActiveWeapon(entity) + offsets::spwDetectedEnemy);
+    }
+
+    static int32_t getRemainAmmo(GameEntity entity) {
+        if (holdingWeapon(entity))
+            return read<int32_t>(getActiveWeapon(entity) + 0x04F0);
+        return 0;
+    }
+
+    static float getWeaponBulletSpeed(GameEntity entity) {
+        if (holdingWeapon(entity))
+            return read<float>(getAmmoConfig(entity) + 0x0100);
+        return FLT_MAX;
+    }
+
+    static FVector getVelocity(GameEntity entity) {
+        return read<FVector>(entity.movement + 0x025C);
+    }
+
+    static FVector getAcceleration(GameEntity entity) {
+        return read<FVector>(entity.movement + 0x022C);
+    }
+
+    static FVector projectToScreen(GameEntity entity, FVector worldLocation, FVector screenSize) {
+        FVector fVector = FVector(0, 0, 0);
+        auto cameraCache = getCameraCache(entity);
+        auto m = matrix(cameraCache.minimalViewInfo.rotation, FVector(0, 0, 0));
+        FVector vAxisX = FVector(m.m[0][0], m.m[0][1], m.m[0][2]);
+        FVector vAxisY = FVector(m.m[1][0], m.m[1][1], m.m[1][2]);
+        FVector vAxisZ = FVector(m.m[2][0], m.m[2][1], m.m[2][2]);
+        FVector delta = worldLocation - cameraCache.minimalViewInfo.location;
+        FVector vTransformed = FVector(delta.dot(vAxisY), delta.dot(vAxisZ), delta.dot(vAxisX));
+        if (vTransformed.z < 1.f)
+            vTransformed.z = 1.f;
+        float fovAngle = cameraCache.minimalViewInfo.FOV;
+        float screenCenterX = screenSize.x / 2.0f;
+        float screenCenterY = screenSize.y / 2.0f;
+        fVector.x = screenCenterX + vTransformed.x * (screenCenterX / tanf(fovAngle * (float) M_PI / 360.f)) / vTransformed.z;
+        fVector.y = screenCenterY - vTransformed.y * (screenCenterX / tanf(fovAngle * (float) M_PI / 360.f)) / vTransformed.z;
+        return fVector;
+    }
+
+
+    static FVector predictAimPosition(GameEntity entity, GameEntity other, float worldGravity, float worldToMeters){
+        FVector predictedPosition = getWorldHeadPosition(other, 5);
+        FVector targetVelocity = getVelocity(other);
+        float gravity = fabs(worldGravity / worldToMeters);
+        float bulletSpeed = getWeaponBulletSpeed(entity) / worldToMeters;
+        float time = (getWorldPosition(entity).distance(predictedPosition) / worldToMeters) / fabs(bulletSpeed);
+        float bulletDrop = (gravity) * time * time;
+        predictedPosition.z += bulletDrop * 120;
+        predictedPosition.x += time * (targetVelocity.x);
+        predictedPosition.y += time * (targetVelocity.y);
+        predictedPosition.z += time * (targetVelocity.z);
+        return predictedPosition;
+    }
 };
 
-std::string weaponIdToString(EWeaponId weaponId) {
+
+std::string weaponIdToString(int weaponId) {
     switch (weaponId) {
         case EWeaponId_Invader:
             return "Invader";
@@ -94,16 +365,13 @@ std::string weaponIdToString(EWeaponId weaponId) {
         case EWeaponId_UZI:
             return "UZI";
         default:
-            return "Unknown";
+            return "No weapon";
     }
 }
 
-
-
-
 struct FBasedMovementInfo {
     unsigned char MovementBase[0x8];                                               // 0x0000   (0x0008)
-    FName BoneName;                                                   // 0x0008   (0x0008)
+    //FName BoneName;                                                   // 0x0008   (0x0008)
     FVector Location;                                                   // 0x0010   (0x000C)
     FRotator Rotation;                                                   // 0x001C   (0x000C)
     bool bServerHasBaseComponent;                                    // 0x0028   (0x0001)
@@ -112,13 +380,7 @@ struct FBasedMovementInfo {
     unsigned char UnknownData00_6[0x5];                                       // 0x002B   (0x0005)  MISSED
 };
 
-struct WorldSettings {
-    float worldToMeters;
-    float worldGravityZ;
-    float globalGravityZ;
-};
-
-class UAmmoConfig2 {
+class UAmmoConfig {
 private:
     DWORD_PTR address;
 public:
@@ -142,7 +404,7 @@ public:
     float particleStartDistance;
     float trajectoryStartDistance;
 
-    explicit UAmmoConfig2(DWORD_PTR address) : address(address) {
+    explicit UAmmoConfig(DWORD_PTR address) : address(address) {
         name = read<FString>(address + 0x0080);
         description = read<FString>(address + 0x0090);
         chargingToleranceEndTime = read<float>(address + 0x0058);
@@ -165,7 +427,7 @@ public:
     }
 };
 
-class USingleWeaponConfig2 {
+class USingleWeaponConfig {
 private:
     DWORD_PTR address;
 public:
@@ -185,7 +447,7 @@ public:
     float scopeOpenFOVTimeScale;
     FString weaponTextType;
 
-    explicit USingleWeaponConfig2(DWORD_PTR address) : address(address) {
+    explicit USingleWeaponConfig(DWORD_PTR address) : address(address) {
         weaponBrand = read<ESolarWeaponBrand>(address + 0x0034);
         weaponType = read<EWeaponType>(address + 0x0035);
         isSingleWeapon = read<bool>(address + 0x0048);
@@ -207,11 +469,37 @@ public:
     }
 };
 
-class SolarCharacter {
+class WorldSettings {
 private:
     DWORD_PTR address;
-    //DWORD_PTR controller;
-    //DWORD_PTR pawn;
+public:
+    int32_t visibilityRange;
+    float worldToMeters;
+    float worldGravityZ;
+    float globalGravityZ;
+    float globalViewDistance;
+
+    explicit WorldSettings(DWORD_PTR address) : address(address) {
+        visibilityRange = read<int32_t>(address + 0x0230);
+        worldToMeters = read<float>(address + 0x02A0);
+        worldGravityZ = read<float>(address + 0x02B0);
+        globalGravityZ = read<float>(address + 0x02B4);
+        globalViewDistance = read<float>(address + 0x030C);
+    }
+
+    WorldSettings() {
+        address = 0;
+    }
+
+    [[nodiscard]] bool isValid() const {
+        return address != 0;
+    }
+};
+
+class SolarCharacter {
+private:
+    DWORD_PTR controller;
+    DWORD_PTR pawn;
     DWORD_PTR state;
     DWORD_PTR skeletonMesh;
     DWORD_PTR rootComponent;
@@ -226,9 +514,6 @@ private:
     float eyeHeight;
     float eyeHeightCrouched;
     bool isPlayerBot;
-    UCharacterMovementComponent movement;
-    APlayerController controller;
-    APawn pawn;
 
     void load() {
         id = read<int32_t>(state + 0x022C);
@@ -241,7 +526,6 @@ private:
         eyeHeight = read<float>(pawn + 0x0234);
         eyeHeightCrouched = read<float>(address + 0x032C);
         solarTeamInfo = read<DWORD_PTR>(state + 0x0C48);
-        movement = UCharacterMovementComponent(read<DWORD_PTR>(pawn + 0x290));
     }
 
     [[nodiscard]] FTransform getBoneIndex(int index) const {
@@ -272,20 +556,11 @@ private:
 
 
 public:
+    DWORD_PTR address;
+
     SolarCharacter() {
         address = 0;
     };
-
-    explicit SolarCharacter(DWORD_PTR address) : address(address) {
-        controller = APlayerController(read<DWORD_PTR>(address + offsets::pPlayerController));
-        //pawn = read<DWORD_PTR>(controller + offsets::pcAcknowledgedPawn);
-        pawn = controller.acknowledgedPawn;
-        //state = read<DWORD_PTR>(pawn + offsets::pPlayerState);
-        skeletonMesh = read<DWORD_PTR>(address + offsets::cMesh);
-        rootComponent = read<DWORD_PTR>(address + offsets::pRootComponent);
-        weaponSystemComponent = read<DWORD_PTR>(pawn + offsets::pWeaponSystemComponent);
-        load();
-    }
 
     explicit SolarCharacter(DWORD_PTR address, bool pawnController) : address(address) {
         if (pawnController) {
@@ -298,13 +573,14 @@ public:
         } else {
             controller = read<DWORD_PTR>(address + offsets::pPlayerController);
             pawn = read<DWORD_PTR>(controller + offsets::pcAcknowledgedPawn);
-            state = read<DWORD_PTR>(address + offsets::pPlayerState);
-            skeletonMesh = read<DWORD_PTR>(address + offsets::cMesh);
-            rootComponent = read<DWORD_PTR>(address + offsets::pRootComponent);
+            state = read<DWORD_PTR>(pawn + offsets::pPlayerState);
+            skeletonMesh = read<DWORD_PTR>(pawn + offsets::cMesh);
+            rootComponent = read<DWORD_PTR>(pawn + offsets::pRootComponent);
             weaponSystemComponent = read<DWORD_PTR>(pawn + offsets::pWeaponSystemComponent);
         }
         load();
     }
+
 
     [[nodiscard]]  FVector getBonePosition(int boneId) const {
         D3DMATRIX matrix = matrixMultiplication(getBoneIndex(boneId).toMatrix(), read<FTransform>(skeletonMesh + 0x250).toMatrix());
@@ -312,7 +588,7 @@ public:
     }
 
     [[nodiscard]] FCameraCacheEntry getCameraCache() const {
-        return read<FCameraCacheEntry>(read<uintptr_t>(controller + offsets::pcPlayerCameraManager) + offsets::pcmCameraCachePrivate);
+        return read<FCameraCacheEntry>(read<DWORD_PTR>(controller + offsets::pcPlayerCameraManager) + offsets::pcmCameraCachePrivate);
     }
 
     [[nodiscard]] bool isMyTeammate(SolarCharacter character) const {
@@ -323,11 +599,11 @@ public:
         auto weaponEquipStatusInfo = read<FPlayerWeaponEquipStatusInfo>(weaponSystemComponent + offsets::playerWeaponEquipStatusInfo);
         switch (slot) {
             case 0:
-                return weaponEquipStatusInfo.PrimaryWeaponStatus == EPlayerWeaponEquipStatus::Holding;
+                return weaponEquipStatusInfo.PrimaryWeaponStatus == EPlayerWeaponEquipStatus::WeaponEquipStatus_Holding;
             case 1:
-                return weaponEquipStatusInfo.SecondaryWeaponStatus == EPlayerWeaponEquipStatus::Holding;
+                return weaponEquipStatusInfo.SecondaryWeaponStatus == EPlayerWeaponEquipStatus::WeaponEquipStatus_Holding;
             case 2:
-                return weaponEquipStatusInfo.TertiaryWeaponStatus == EPlayerWeaponEquipStatus::Holding;
+                return weaponEquipStatusInfo.TertiaryWeaponStatus == EPlayerWeaponEquipStatus::WeaponEquipStatus_Holding;
             default:
                 return false;
         }
@@ -366,6 +642,34 @@ public:
         return read<bool>(getActiveWeapon() + offsets::spwDetectedEnemy);
     }
 
+    [[nodiscard]] bool recentlyRendered() const {
+        return driver::readBoolean(skeletonMesh + 0x727, 0x64);
+    }
+
+    [[nodiscard]] int32_t getRemainAmmo() const {
+        return read<int32_t>(getActiveWeapon() + 0x04F0);
+    }
+
+    [[nodiscard]] float getCurrentTime() const {
+        return read<float>(pawn + 0x25D0);
+    }
+
+    [[nodiscard]] float getPreviousTime() const {
+        return read<float>(pawn + 0x25D4);
+    }
+
+    [[nodiscard]] float getDeltaTime() const {
+        return read<float>(pawn + 0x25D8);
+    }
+
+    [[nodiscard]] bool isHidden() const {
+        return driver::readBoolean(pawn + 0x727, 0x32);
+    }
+
+    [[nodiscard]] int32_t getAmmo() const {
+        return read<int32_t>(getActiveWeapon() + 0x0498);
+    }
+
     [[nodiscard]] int32_t getWeaponId() const {
         return read<int32_t>(getActiveWeapon() + 0x0480);
     }
@@ -375,8 +679,13 @@ public:
     }
 
     [[nodiscard]]  FVector getVelocity() const {
-        return movement.lastUpdateVelocity;
-        //return read<FVector>(rootComponent + 0x0140);
+        auto movement = read<DWORD_PTR>(pawn + 0x290);
+        return read<FVector>(movement + 0x025C);
+    }
+
+    [[nodiscard]]  FVector getAcceleration() const {
+        auto movement = read<DWORD_PTR>(pawn + 0x290);
+        return read<FVector>(movement + 0x022C);
     }
 
     [[nodiscard]]FVector getWorldPosition() const {
@@ -399,7 +708,7 @@ public:
         return position;
     }
 
-    [[nodiscard]] FBasedMovementInfo getBasedMovementInfo() const{
+    [[nodiscard]] FBasedMovementInfo getBasedMovementInfo() const {
         return read<FBasedMovementInfo>(address + 0x02A0);
     }
 
@@ -430,14 +739,13 @@ public:
     [[nodiscard]] FVector targetCorrection(WorldSettings worldSettings, float targetDistance, FVector targetPosition, FVector targetVelocity) const {
         FVector predictedPosition = targetPosition;
         float gravity = fabs(worldSettings.worldGravityZ / worldSettings.worldToMeters);
-        //float bulletSpeed = getWeaponConfig().getPrimaryAmmoConfig().initSpeed;
-        float bulletSpeed = 1;
+        float bulletSpeed = getWeaponConfig().getPrimaryAmmoConfig().initSpeed / worldSettings.worldToMeters;
         float time = targetDistance / fabs(bulletSpeed);
-        float bulletDrop = (gravity / 250) * time * time;
+        float bulletDrop = (gravity) * time * time;
         predictedPosition.z += bulletDrop * 120;
-        predictedPosition.x += time * (targetVelocity.x / 4);
-        predictedPosition.y += time * (targetVelocity.y / 4);
-        predictedPosition.z += time * (targetVelocity.z / 4);
+        predictedPosition.x += time * (targetVelocity.x);
+        predictedPosition.y += time * (targetVelocity.y);
+        predictedPosition.z += time * (targetVelocity.z);
         return predictedPosition;
     }
 
@@ -485,35 +793,23 @@ public:
         return solarTeamInfo;
     }
 
-    DWORD_PTR getAddress() const {
-        return address;
-    }
-
-    DWORD_PTR getRootComponent() const {
-        return rootComponent;
-    }
-
-    DWORD_PTR getState() const {
-        return state;
-    }
-
-    DWORD_PTR getPawn() const {
-        return pawn;
-    }
-
     [[nodiscard]] bool isValid() const {
         return address != 0;
     }
-
 };
 
 
 namespace EntityType {
     bool isVehicle(const std::string &type) {
-        return strings::isEqual(type, "BP_VH_Hover_WL04_C") ||
-               strings::isEqual(type, "BP_VH_Hover_9A03_C") ||
-               strings::isEqual(type, "BP_VH_Hover_Soroll02_C") ||
-               strings::isEqual(type, "BP_VH_Hover_Soroll03_C") ||
+        return strings::isEqual(type, "SolarHoverVehicle") ||
+               strings::isEqual(type, "SolarLeggedVehicle") ||
+               strings::isEqual(type, "SolarWheeledVehicle") ||
+               strings::isEqual(type, "SolarVehiclePawn") ||
+               strings::isEqual(type, "SolarTransformerVehicle") ||
+               strings::isEqual(type, "SolarAirPlaneVehicle") ||
+               strings::isEqual(type, "SolarBackpackerVehicle") ||
+               strings::isEqual(type, "SolarTitanVehicle") ||
+               strings::isEqual(type, "SolarSiegeVehicle") ||
                strings::isEqual(type, "BP_VH_Hover_Soroll04_C") ||
                strings::isEqual(type, "BP_VH_TransTL_WL07_C") ||
                strings::isEqual(type, "BP_SolarVH_Tire_9A04_new_C") ||
@@ -528,15 +824,8 @@ namespace EntityType {
     }
 
     bool isPlayer(const std::string &type) {
-        return strings::isEqual(type, "BP_SolarLobbyCharacter_C") ||
-               strings::isEqual(type, "BP_Character_BattleRoyaleMap01_C") ||
-               strings::isEqual(type, "BP_Character_BattleRoyale_C") ||
-               strings::isEqual(type, "BP_Character_TrainingMode_C") ||
-               strings::isEqual(type, "BP_Character_TeamDeathMatch_C") ||
-               strings::isEqual(type, "BP_Character_HunterXHunterTeamVer2_C") ||
-               strings::isEqual(type, "BP_Character_Solo_C") ||
-               strings::isContain(type, "BP_Character") ||
-               strings::isEqual(type, "BP_Character_Bounty_C");
+        return strings::isContain(type, "SolarLobbyCharacter") ||
+               strings::isContain(type, "BP_Character");
     }
 
     bool isDeadBox(std::string &type) {
@@ -759,6 +1048,7 @@ namespace BonesType {
     };
 }
 
+
 FTransform getBoneIndex(DWORD_PTR mesh, int index) {
     auto bones = read<DWORD_PTR>(mesh + offsets::smcSkeletalMesh);
     if (!bones)
@@ -772,3 +1062,5 @@ FVector getBoneWithRotation(DWORD_PTR mesh, int id) {
     D3DMATRIX matrix = matrixMultiplication(bone.toMatrix(), world.toMatrix());
     return {matrix._41, matrix._42, matrix._43};
 }
+
+
