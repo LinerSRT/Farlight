@@ -172,44 +172,39 @@ enum EZiplineMoveState : uint8_t {
     ZiplineMoveState_OnZipline = 2
 };
 
-enum ETalentState : uint8_t
-{
-    TalentState_Activating                                                        = 0,
-    TalentState_CoolingDown                                                       = 1,
-    TalentState_Unactivated                                                       = 2,
-    TalentState_Invalid                                                           = 3
+enum ETalentState : uint8_t {
+    TalentState_Activating = 0,
+    TalentState_CoolingDown = 1,
+    TalentState_Unactivated = 2,
+    TalentState_Invalid = 3
 };
 
-enum class ECommonInputType : uint8_t
-{
-    InputType_MouseAndKeyboard               = 0,
-    InputType_Gamepad                        = 1,
-    InputType_Touch                          = 2,
-    InputType_Count                          = 3
+enum class ECommonInputType : uint8_t {
+    InputType_MouseAndKeyboard = 0,
+    InputType_Gamepad = 1,
+    InputType_Touch = 2,
+    InputType_Count = 3
 };
 
 
-enum EPlayerNetStateInGame : uint8_t
-{
-    NetStateInGame_None0                                                     = 0,
-    NetStateInGame_Online1                                                   = 1,
-    NetStateInGame_Offline2                                                  = 2
+enum EPlayerNetStateInGame : uint8_t {
+    NetStateInGame_None0 = 0,
+    NetStateInGame_Online1 = 1,
+    NetStateInGame_Offline2 = 2
 };
 
-enum ESkydivingState : uint8_t
-{
-    SkydivingState_NotStarted0                                                     = 0,
-    SkydivingState_PreStart1                                                       = 1,
-    SkydivingState_InProgress2                                                     = 2,
-    SkydivingState_Completed3                                                      = 3
+enum ESkydivingState : uint8_t {
+    SkydivingState_NotStarted0 = 0,
+    SkydivingState_PreStart1 = 1,
+    SkydivingState_InProgress2 = 2,
+    SkydivingState_Completed3 = 3
 };
 
-enum EMatchResult : uint8_t
-{
-    MatchResult_None                                                              = 0,
-    MatchResult_Victory                                                           = 1,
-    MatchResult_Fail                                                              = 2,
-    MatchResult_Draw                                                              = 3
+enum EMatchResult : uint8_t {
+    MatchResult_None = 0,
+    MatchResult_Victory = 1,
+    MatchResult_Fail = 2,
+    MatchResult_Draw = 3
 };
 
 enum EPlayerWeaponEquipStatus : uint8_t {
@@ -243,7 +238,105 @@ enum EWeaponId : int32_t {
     EWeaponId_UZI = 32001
 };
 
+enum EBResurrectionState : uint8_t {
+    NoneState = 0,
+    WaitForApply = 1,
+    NotApply = 2,
+    Resurrected = 3,
+    WaitForResurrect = 4,
+    GiveUp = 5,
+    Timeout = 6,
+    AllTeammatesDied = 7,
+    EBResurrectionState_MAX = 8
+};
 
+enum EItemType : uint32_t {
+    NONE = 0,
+    SHIELD = 101,
+    ARMOR = 102,
+    BULLET = 103,
+    CARTRIDGE_BAG = 104,
+    ARMOR_MATERIAL = 105,
+    ENERGY_MODULE = 106,
+    EXTRA_ENERGY = 107,
+    RADAR_OPERATOR = 108,
+    BACKPACK_ENERGY = 109,
+    BACKUP_ENERGY = 110,
+    SHIELD_RECHARGER = 112,
+    BACKPACK_ITEM = 113,
+    WEAPON_PARTS = 114,
+    JETPACK_MODULE_HORIZONTAL = 111,
+    JETPACK_MODULE_VERTICAL = 115,
+    REVIVE_ITEM = 116,
+    TREASURE_BOX = 120,
+    AIRDROP_BOX = 121,
+    DEATH_BOX_1 = 122,
+    HOT_SPRINT_BOX = 123,
+    NEUTRAL_CARD = 130,
+    COLLECTION_ITEM = 131,
+    SHIELD_UPGRADE_MATERIAL = 148,
+    EXP_ITEM = 149,
+    WEAPON = 151,
+    WEAPON_SKIN = 171,
+    MISSION_SPAWN = 160,
+    MISSION_CHEST = 161,
+    MISSION_WORSHIP = 162,
+    BACKPACK = 201,
+    TAIL_FLAME = 202,
+    CARD_POSE = 203,
+    CARD_BACKGROUND = 204,
+    CAPSULE = 251,
+    CHAR_SKIN_MIN = 301,
+    CHAR_ANIMATION_MVP = 302,
+    CHAR_SKIN_MAX = 350,
+    CHARACTER_1 = 351,
+    EXPERIENCE = 401,
+    GIFT_BAG = 404,
+    CHARACTER_TRIAL_CARD = 405,
+    CHARACTER_SKIN_TRIAL_CARD = 406,
+    ACTIVENESS = 411,
+    WEAPON_SKIN_TRIAL_CARD = 412,
+    GIFT_BAG_ON_BACKPACK = 414,
+    BACKPACK_TRIAL_CARD = 415,
+    TAIL_FLAME_TRIAL_CARD = 416,
+    DIAMOND_VOUCHER = 417,
+    LOT_COIN = 421,
+    ZOMBORG = 422,
+    WISH_COIN = 423,
+    SURPRISE_COIN = 424,
+    TOKEN = 430,
+    BUSINESS_CARD_FRAME = 432,
+    AVATAR_FRAME = 434,
+    CHARACTER_SHARD = 435,
+    CHARACTER_SKIN_SHARD = 436,
+    WEAPON_SKIN_SHARD = 437,
+    BACKPACK_SHARD = 438,
+    TAIL_FLAME_SHARD = 439,
+    CAPSULE_SHARD = 440,
+    VEHICLE_SKIN_SHARD = 441,
+    ACCOUNT_AVATAR = 443,
+    EMOTE = 444,
+    SIGN_IN_CARD = 447,
+    RAFFLE_TICKET = 448,
+    VEHICLE_SKIN = 701,
+    SUPPLY_BOX = 801,
+    RANDOM_PACK = 901,
+    DISPLAY_ITEM = 999,
+    EItemType_MAX = 1000
+};
+
+enum EWeaponPartType : uint8_t {
+    Muzzle0 = 0,
+    Scope1 = 1,
+    Clip2 = 2,
+    Rune3 = 3,
+    Grip4 = 4,
+    GunStock5 = 5,
+    Scope2x6 = 6,
+    Scope4x7 = 7,
+    Scope8x8 = 8,
+    MAX9 = 9
+};
 
 enum EEntityType : uint8_t {
     UNKNOWN_ENTITY = 99,
@@ -253,5 +346,6 @@ enum EEntityType : uint8_t {
     VEHICLE = 3, //ASolarVehiclePawn
     OBJECT = 4, //ASummonItemBase
     ITEM = 5, //ASummonItemBase
-    ITEM_BOX = 6 //ASummonItemBase
+    ITEM_BOX = 6, //ASummonItemBase
+    DEATH_BOX = 7 //ADeathTreasureBox, ABP_DBox_Default_C
 };

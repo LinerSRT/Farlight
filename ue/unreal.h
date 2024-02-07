@@ -178,7 +178,7 @@ struct UObject {
         return read<DWORD_PTR>(object + 0x0010);
     }
 
-    static uint64_t getClassFlags(DWORD_PTR object){
+    static uint64_t getClassFlags(DWORD_PTR object) {
         return read<uint64_t>(getClass(object) + 0x00D0);
     }
 
@@ -216,8 +216,8 @@ struct UObject {
 };
 
 
-struct UObjectArray{
-    static int32_t getObjectCount(){
+struct UObjectArray {
+    static int32_t getObjectCount() {
         return read<int32_t>((baseId + offsets::gObject) + 0x14);
     }
 
@@ -227,26 +227,259 @@ struct UObjectArray{
         return read<DWORD_PTR>(chunk + 0x18 * (index % 0x10000));
     }
 
-    static DWORD_PTR findObjectExact(const std::string& name){
+    static DWORD_PTR findObjectExact(const std::string &name) {
         for (int i = 0; i < getObjectCount(); ++i) {
             auto object = getObject(i);
-            if(!UObject::isValid(object))
+            if (!UObject::isValid(object))
                 continue;
-            if(UObject::getClassName(object) == name){
+            if (UObject::getClassName(object) == name) {
                 return object;
             }
         }
         return 0;
     }
-    static DWORD_PTR findObject(const std::string& name){
+
+    static DWORD_PTR findObject(const std::string &name) {
         for (int i = 0; i < getObjectCount(); ++i) {
             auto object = getObject(i);
-            if(!UObject::isValid(object))
+            if (!UObject::isValid(object))
                 continue;
-            if(UObject::getClassName(object).find(name) != std::string::npos){
+            if (UObject::getClassName(object).find(name) != std::string::npos) {
                 return object;
             }
         }
         return 0;
+    }
+};
+
+template<typename InElementType>
+class TSet {
+public:
+    InElementType *Elements;
+    uint32_t Hash;
+    uint32_t HashSize;
+};
+
+template<class KeyType, class ValueType>
+class TTuple {
+public:
+    KeyType Key;
+    ValueType Value;
+};
+
+template<typename KeyType, typename ValueType>
+using TPair = TTuple<KeyType, ValueType>;
+
+
+template<typename TArray>
+class TIterator {
+public:
+    using ElementType = typename TArray::ElementType;
+    using ElementPointer = ElementType *;
+    using ElementReference = ElementType &;
+    using ElementConstReference = const ElementType &;
+
+private:
+    ElementPointer IteratorData;
+
+public:
+    TIterator(ElementPointer inElementPointer) : IteratorData(inElementPointer) {}
+
+    ~TIterator() {}
+
+public:
+    TIterator &operator++() {
+        IteratorData++;
+        return *this;
+    }
+
+    TIterator operator++(int32_t) {
+        TIterator iteratorCopy = *this;
+        ++(*this);
+        return iteratorCopy;
+    }
+
+    TIterator &operator--() {
+        IteratorData--;
+        return *this;
+    }
+
+    TIterator operator--(int32_t) {
+        TIterator iteratorCopy = *this;
+        --(*this);
+        return iteratorCopy;
+    }
+
+    ElementReference operator[](int32_t index) {
+        return *(IteratorData[index]);
+    }
+
+    ElementPointer operator->() {
+        return IteratorData;
+    }
+
+    ElementReference operator*() {
+        return *IteratorData;
+    }
+
+public:
+    bool operator==(const TIterator &other) const {
+        return (IteratorData == other.IteratorData);
+    }
+
+    bool operator!=(const TIterator &other) const {
+        return !(*this == other);
+    }
+};
+
+
+template<typename TKey, typename TValue>
+class TMap {
+private:
+    struct TPair {
+        TKey Key;
+        TValue Value;
+    };
+
+public:
+    using ElementType = TPair;
+    using ElementPointer = ElementType *;
+    using ElementReference = ElementType &;
+    using ElementConstReference = const ElementType &;
+    using Iterator = TIterator<TArray<ElementType>>;
+
+public:
+    TArray<ElementType> Elements;// 0x0000 (0x0010)
+    uintptr_t IndirectData;// 0x0010 (0x0008)
+    int32_t InlineData[0x4];// 0x0018 (0x0010)
+    int32_t NumBits;// 0x0028 (0x0004)
+    int32_t MaxBits;// 0x002C (0x0004)
+    int32_t FirstFreeIndex;// 0x0030 (0x0004)
+    int32_t NumFreeIndices;// 0x0034 (0x0004)
+    int64_t InlineHash;// 0x0038 (0x0008)
+    int32_t *Hash;// 0x0040 (0x0008)
+    int32_t HashCount;// 0x0048 (0x0004)
+
+public:
+    TMap() :
+            IndirectData(NULL),
+            NumBits(0),
+            MaxBits(0),
+            FirstFreeIndex(0),
+            NumFreeIndices(0),
+            InlineHash(0),
+            Hash(nullptr),
+            HashCount(0) {
+
+    }
+
+    TMap(struct FMap_Mirror &other) :
+            IndirectData(NULL),
+            NumBits(0),
+            MaxBits(0),
+            FirstFreeIndex(0),
+            NumFreeIndices(0),
+            InlineHash(0),
+            Hash(nullptr),
+            HashCount(0) {
+        assign(other);
+    }
+
+    TMap(const TMap<TKey, TValue> &other) :
+            IndirectData(NULL),
+            NumBits(0),
+            MaxBits(0),
+            FirstFreeIndex(0),
+            NumFreeIndices(0),
+            InlineHash(0),
+            Hash(nullptr),
+            HashCount(0) {
+        assign(other);
+    }
+
+    ~TMap() {}
+
+public:
+    TMap<TKey, TValue> &assign(struct FMap_Mirror &other) {
+        *this = *reinterpret_cast<TMap<TKey, TValue> *>(&other);
+        return *this;
+    }
+
+    TMap<TKey, TValue> &assign(const TMap<TKey, TValue> &other) {
+        Elements = other.Elements;
+        IndirectData = other.IndirectData;
+        InlineData[0] = other.InlineData[0];
+        InlineData[1] = other.InlineData[1];
+        InlineData[2] = other.InlineData[2];
+        InlineData[3] = other.InlineData[3];
+        NumBits = other.NumBits;
+        MaxBits = other.MaxBits;
+        FirstFreeIndex = other.FirstFreeIndex;
+        NumFreeIndices = other.NumFreeIndices;
+        InlineHash = other.InlineHash;
+        Hash = other.Hash;
+        HashCount = other.HashCount;
+        return *this;
+    }
+
+    TValue &at(const TKey &key) {
+        for (TPair &pair: Elements) {
+            if (pair.Key == key) {
+                return pair.Value;
+            }
+        }
+    }
+
+    const TValue &at(const TKey &key) const {
+        for (const TPair &pair: Elements) {
+            if (pair.Key == key) {
+                return pair.Value;
+            }
+        }
+    }
+
+    TPair &at_index(int32_t index) {
+        return Elements[index];
+    }
+
+    const TPair &at_index(int32_t index) const {
+        return Elements[index];
+    }
+
+    int32_t size() const {
+        return Elements.size();
+    }
+
+    int32_t capacity() const {
+        return Elements.capacity();
+    }
+
+    bool empty() const {
+        return Elements.empty();
+    }
+
+    Iterator begin() {
+        return Elements.begin();
+    }
+
+    Iterator end() {
+        return Elements.end();
+    }
+
+public:
+    TValue &operator[](const TKey &key) {
+        return at(key);
+    }
+
+    const TValue &operator[](const TKey &key) const {
+        return at(key);
+    }
+
+    TMap<TKey, TValue> &operator=(const struct FMap_Mirror &other) {
+        return assign(other);
+    }
+
+    TMap<TKey, TValue> &operator=(const TMap<TKey, TValue> &other) {
+        return assign(other);
     }
 };

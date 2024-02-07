@@ -1,8 +1,14 @@
 cmake_minimum_required(VERSION 3.27)
 project(Farlight)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+message( "\${CMAKE_CXX_FLAGS_RELEASE} = ${CMAKE_CXX_FLAGS_RELEASE}")
+message( "\${CMAKE_CXX_FLAGS_DEBUG} = ${CMAKE_CXX_FLAGS_DEBUG}")
+
 
 set(CMAKE_CXX_STANDARD 20)
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+add_link_options(-static -static-libgcc -static-libstdc++)
 add_executable(Farlight
         main.cpp
         utils/driver.h
@@ -37,5 +43,4 @@ add_executable(Farlight
         utils/mouse_controller.cpp
         utils/mouse_controller.h
 )
-
 target_link_libraries(Farlight PRIVATE d3d11.lib d3d9.lib dwmapi.lib d3dcompiler.lib d3dx9.lib ntdll.lib)
