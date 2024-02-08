@@ -37,4 +37,10 @@ namespace strings {
             s += charset[pick(rg)];
         return s;
     }
+
+    string toString(wchar_t* value){
+        wstring ws(value);
+        string result(ws.begin(), ws.end());
+        return result;
+    }
 }

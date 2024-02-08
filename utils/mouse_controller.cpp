@@ -56,6 +56,21 @@ namespace input {
         return result;
     }
 
+    BOOLEAN WINAPI holdKey(UINT Key){
+        INPUT ip;
+        ip.type = INPUT_KEYBOARD;
+        ip.ki.wScan = 0;
+        ip.ki.time = 0;
+        ip.ki.dwExtraInfo = 0;
+        ip.ki.wVk = Key;
+        ip.ki.dwFlags = 0;
+        sendInput(1, &ip, sizeof(INPUT));
+        ip.ki.dwFlags = KEYEVENTF_KEYUP;
+        sendInput(1, &ip, sizeof(INPUT));
+        return 0;
+    }
+
+
     BOOLEAN WINAPI moveMouse(int x, int y) {
         INPUT input;
         input.type = INPUT_MOUSE;

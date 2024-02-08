@@ -38,9 +38,10 @@ add_executable(Farlight
         cheat/images.h
         imgui/font_awesome.h
         cheat/solar_enum.h
-        ue/utils.h
+        utils/utils.h
         ue/unreal.h
         utils/mouse_controller.cpp
         utils/mouse_controller.h
+        cheat/config.h
 )
 target_link_libraries(Farlight PRIVATE d3d11.lib d3d9.lib dwmapi.lib d3dcompiler.lib d3dx9.lib ntdll.lib)

@@ -4,7 +4,9 @@
 #include "utils/driver.h"
 #include "cheat/overlay.h"
 #include "cheat/solarland.h"
+#include "cheat/config.h"
 #include "utils/f_math.h"
+#include <shlobj.h>
 
 #define VERSION 1
 #define SUB_VERSION 1
@@ -15,28 +17,18 @@ GameEntity localPlayer;
 
 std::vector<GameEntity> entityList;
 std::vector<std::string> unknownEntity;
-int selectedItem = 0;
-float aimBotFov = 80;
-float aimBotSmooth = 0;
 
+bool mouseDisabled = false;
 bool aiming = false;
 GameEntity targetCharacter;
 
 uint64_t readThreadDelay;
 uint64_t drawThreadDelay;
+static float valuesRead[200] = {};
+static int valuesReadOffset = 0;
+static float valuesDraw[200] = {};
+static int valuesDrawOffset = 0;
 
-struct Pointers {
-    DWORD_PTR uWorld;
-    DWORD_PTR gameState;
-    DWORD_PTR gameMode;
-    DWORD_PTR owningGameInstance;
-    DWORD_PTR persistentLevel;
-    TArray<DWORD_PTR> entityList;;
-};
-
-
-Pointers pointers;
-DWORD offset = 0;
 
 void print(const std::string &value) {
     std::cout << value << std::endl;
@@ -48,15 +40,15 @@ void print(const std::string &value) {
         auto start = local_time::milliseconds();
         std::vector<GameEntity> tmp_entityList;
         std::vector<std::string> tmp_unknownEntity;
-        pointers.uWorld = read<DWORD_PTR>(baseId + offsets::gWorld);
-        pointers.gameState = read<DWORD_PTR>(pointers.uWorld + offsets::wGameState);
-        pointers.gameMode = read<DWORD_PTR>(pointers.uWorld + offsets::wAuthorityGameMode);
-        pointers.owningGameInstance = read<DWORD_PTR>(pointers.uWorld + offsets::wOwningGameInstance);
-        pointers.persistentLevel = read<DWORD_PTR>(pointers.uWorld + offsets::wPersistentLevel);
-        localPlayer = GameEntity(read<DWORD_PTR>(read<DWORD_PTR>(pointers.owningGameInstance + offsets::giLocalPlayers)), LOCAL_CHARACTER);
-        pointers.entityList = read<TArray<DWORD_PTR>>(pointers.persistentLevel + offsets::ncOwningActor);
-        for (int i = 0; i < pointers.entityList.length(); ++i) {
-            auto pointer = pointers.entityList.getValuePointer(i);
+        auto uWorld = read<DWORD_PTR>(baseId + offsets::gWorld);
+        auto gameState = read<DWORD_PTR>(uWorld + offsets::wGameState);
+        auto gameMode = read<DWORD_PTR>(uWorld + offsets::wAuthorityGameMode);
+        auto owningGameInstance = read<DWORD_PTR>(uWorld + offsets::wOwningGameInstance);
+        auto persistentLevel = read<DWORD_PTR>(uWorld + offsets::wPersistentLevel);
+        localPlayer = GameEntity(read<DWORD_PTR>(read<DWORD_PTR>(owningGameInstance + offsets::giLocalPlayers)), LOCAL_CHARACTER);
+        auto list = read<TArray<DWORD_PTR>>(persistentLevel + offsets::ncOwningActor);
+        for (int i = 0; i < list.length(); ++i) {
+            auto pointer = list.getValuePointer(i);
             if (pointer == 0x0)
                 continue;
             auto name = UObject::getClassName(pointer);
@@ -78,9 +70,16 @@ void print(const std::string &value) {
         }
         entityList = tmp_entityList;
         unknownEntity = tmp_unknownEntity;
-
         readThreadDelay = local_time::milliseconds() - start;
-
+        valuesRead[valuesReadOffset] = readThreadDelay;
+        valuesReadOffset = (valuesReadOffset + 1) % IM_ARRAYSIZE(valuesRead);
+        if (Overlay::show && !mouseDisabled){
+            input::holdKey(0x4F);
+            mouseDisabled = true;
+        } else if(!Overlay::show && mouseDisabled){
+            input::holdKey(0x4F);
+            mouseDisabled = false;
+        }
     }
 }
 
@@ -104,7 +103,8 @@ void aimFunction(float fov, float smooth) {
                 }
             }
         }
-    drawCircle(screenCenter.x, screenCenter.y, fov, ImColor(255, 255, 255), 30);
+    if (config::aimbot::showFov)
+        drawCircle(screenCenter.x, screenCenter.y, fov, ImColor(255, 255, 255), 180);
     if (!targetCharacter.isValid()) {
         aiming = false;
         return;
@@ -115,7 +115,7 @@ void aimFunction(float fov, float smooth) {
         return;
     auto aimPosition = Character::predictAimPosition(localPlayer, targetCharacter, worldSettings.globalGravityZ, worldSettings.worldToMeters);
     auto aipPositionOnScreen = Character::projectToScreen(localPlayer, aimPosition, FVector((float) farlight.width, (float) farlight.height, 0));
-    if (GetAsyncKeyState(VK_SHIFT)) {
+    if (input::getAsyncKeyState(VK_SHIFT)) {
         aiming = true;
         float center_x = (float) farlight.width / 2;
         float center_y = (float) farlight.height / 2;
@@ -177,19 +177,17 @@ void render() {
     auto start = local_time::milliseconds();
     FVector screenSize = FVector((float) farlight.width, (float) farlight.height, 0);
     FVector screenCenter = FVector(static_cast<float>((float) farlight.width / 2.0f), static_cast<float>((float) farlight.height / 2.0f), 0);
-    aimFunction(aimBotFov, aimBotSmooth);
+    if (config::aimbot::enable)
+        aimFunction(config::aimbot::fov, config::aimbot::smoothing);
     for (const auto &e: entityList) {
         if (e.entityType == CHARACTER) {
             if (Character::isLocalPlayer(localPlayer, e)) {
-
-
                 continue;
             }
             if (Character::isTeamWith(localPlayer, e))
                 continue;
             if (Character::isDead(e))
                 continue;
-
 
             auto characterPosition = Character::getWorldPosition(e);
             auto characterHeadPosition = Character::getWorldHeadPosition(e, 20);
@@ -200,12 +198,14 @@ void render() {
             auto characterWidth = characterHeight * 0.5f;
             auto aimPosition = Character::predictAimPosition(localPlayer, e, worldSettings.globalGravityZ, worldSettings.worldToMeters);
             auto aipPositionOnScreen = Character::projectToScreen(localPlayer, aimPosition, screenSize);
+            //auto characterWasRendered = driver::readBoolean(e.skeletonMesh + 0x0727, 6);
+            auto characterWasRendered = driver::readBoolean(e.rootComponent + 0x014C, 5);
             drawBox(
                     characterOnScreenBottom.x - characterWidth / 2,
                     characterOnScreenBottom.y - characterHeight,
                     characterWidth,
                     characterHeight,
-                    Character::isBot(e) ? ImColor(255, 0, 0) : ImColor(20, 255, 20),
+                    characterWasRendered ? ImColor(255, 0, 0) : ImColor(20, 255, 20),
                     0.3f
             );
             float distanceScale = fmath::map(characterDistance, 0, 300, 1, 0);
@@ -289,10 +289,13 @@ void render() {
                         }
                 );
             }
-            drawLine(screenCenter.x, screenSize.y, characterOnScreenBottom.x, characterOnScreenBottom.y, Character::isBot(e) ? ImColor(255, 0, 0) : ImColor(255, 255, 255), 1);
+            if (config::esp::showSnapLines)
+                drawLine(screenCenter.x, screenSize.y, characterOnScreenBottom.x, characterOnScreenBottom.y, Character::isBot(e) ? ImColor(255, 0, 0) : ImColor(255, 255, 255), 1);
             drawCircle(aipPositionOnScreen.x, aipPositionOnScreen.y, 3, ImColor(255, 0, 0), 30);
         } else if (e.entityType == ITEM) {
             auto itemData = Item::getItemData(e);
+            if (itemData.Quality < config::esp::items::qualityFilter)
+                continue;
             auto itemPosition = Item::getPosition(e);
             auto itemPositionOnScreen = Character::projectToScreen(localPlayer, itemPosition, screenSize);
             auto itemDistance = Item::getDistance(localPlayer, e, worldSettings.worldToMeters);
@@ -407,29 +410,94 @@ void render() {
     infoTextOptions.backgroundColor = ImColor(23, 23, 23, 120);
     a = drawText(diagnosticText, ImVec2(a.z, 0), infoTextOptions);
 
+    bool renderedMesh = driver::readBoolean(localPlayer.skeletonMesh + 0x0727, 6);
+    bool renderedComp = driver::readBoolean(localPlayer.rootComponent + 0x014C, 5);
+    a = drawText("Was rendered " + std::to_string(renderedMesh) + " - " + std::to_string(renderedComp), ImVec2(a.z, 0), infoTextOptions);
 
+
+    valuesDraw[valuesDrawOffset] = drawThreadDelay;
+    valuesDrawOffset = (valuesDrawOffset + 1) % IM_ARRAYSIZE(valuesDraw);
 }
 
 
 void renderMenu() {
-    drawSeparator();
-    tabButton("ESP", &selectedTab, 0, true);
-    tabButton("Debug", &selectedTab, 1, false);
-    drawSeparator();
-    ImGui::SliderFloat("AIM FOV", &aimBotFov, 20, 300);
-    ImGui::SliderFloat("AIM Smooth", &aimBotSmooth, 0, 30);
+    ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+    if (ImGui::BeginTabBar("CheatBar", tab_bar_flags)) {
+        if (ImGui::BeginTabItem("ESP")) {
+            ImGui::Checkbox("Enable ESP", &config::esp::enable);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Aimbot")) {
+            ImGui::Checkbox("Enable aimbot", &config::aimbot::enable);
+            if (config::aimbot::enable) {
+                ImGui::Separator();
+                ImGui::Combo("Type", &config::aimbot::type, "Distance to crosshair\0Distance to player\0");
+                ImGui::Combo("Target", &config::aimbot::target, "Head\0Neck\0Chest\0Random\0");
+                ImGui::Separator();
+                ImGui::SliderFloat("Field of view", &config::aimbot::fov, 20, 300);
+                ImGui::SliderFloat("Smooth", &config::aimbot::smoothing, 0, 30);
+                ImGui::Separator();
+                ImGui::Checkbox("Show field of view", &config::aimbot::showFov);
+                ImGui::Checkbox("Predict aim position by distance and velocity", &config::aimbot::predictPosition);
+                ImGui::Checkbox("Draw dot at predicted position", &config::aimbot::showPredictedPosition);
+            }
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Triggerbot")) {
+            ImGui::Checkbox("Enable triggerbot", &config::triggerbot::enable);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Debug")) {
+            ImGui::Text("This is not enabled in release build");
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Performance")) {
+            char entitySize[32];
+            sprintf(entitySize, "Processing %d entities", static_cast<int>(entityList.size()));
+            ImGui::Text(entitySize);
+            char entityUndefinedSize[32];
+            sprintf(entityUndefinedSize, "Unprocessed %d entities", static_cast<int>(unknownEntity.size()));
+            ImGui::Text(entityUndefinedSize);
+
+            if (ImGui::CollapsingHeader("Unprocessed entities", ImGuiTreeNodeFlags_None)) {
+                for (const auto &item: unknownEntity)
+                    ImGui::Text(item.c_str());
+            }
+
+            float averageRead = 0.0f;
+            for (float value: valuesRead)
+                averageRead += value;
+            averageRead /= (float) IM_ARRAYSIZE(valuesRead);
+            char overlayRead[32];
+            sprintf(overlayRead, "Read average %f ms", averageRead);
+            ImGui::PlotLines("", valuesRead, IM_ARRAYSIZE(valuesRead), valuesReadOffset, overlayRead, 0, 30, ImVec2(-1, 80.0f));
+            float averageDraw = 0.0f;
+            for (float value: valuesDraw)
+                averageDraw += value;
+            averageDraw /= (float) IM_ARRAYSIZE(valuesDraw);
+            char overlayDraw[32];
+            sprintf(overlayDraw, "Draw average %f ms", averageDraw);
+            ImGui::PlotLines("", valuesDraw, IM_ARRAYSIZE(valuesDraw), valuesDrawOffset, overlayDraw, 0, 30, ImVec2(-1, 80.0f));
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("About")) {
+            ImGui::Text("This cheat was made for fun. If you got pay for them - you got scammed!\nDeveloper: LineR");
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
 
 
-    std::vector<const char *> items;
-    items.reserve(unknownEntity.size());
-    for (const auto &item: unknownEntity) {
-        items.push_back(item.c_str());
-    }
-    ImGui::PushItemWidth(-1);
-    ImGui::ListBox("Undefined entities", &selectedItem, items.data(), static_cast<int>(items.size()));
-    if (ImGui::Button("Copy", ImVec2(100, 62))) {
-        toClipboard(GetDesktopWindow(), unknownEntity.at(selectedItem));
-    }
+    //std::vector<const char *> items;
+    //items.reserve(unknownEntity.size());
+    //for (const auto &item: unknownEntity) {
+    //    items.push_back(item.c_str());
+    //}
+    //ImGui::PushItemWidth(-1);
+    //ImGui::ListBox("Undefined entities", &selectedItem, items.data(), static_cast<int>(items.size()));
+    //if (ImGui::Button("Copy", ImVec2(100, 62))) {
+    //    toClipboard(GetDesktopWindow(), unknownEntity.at(selectedItem));
+    //}
 
 }
 
@@ -463,6 +531,37 @@ int main() {
             }
         } else {
             print("[-] Game not found!");
+            print("[~] Cleaning EAC");
+            wchar_t *appdataRoaming;
+            if (SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_CREATE, nullptr, &appdataRoaming) != S_OK) {
+                print("[-] Failed to found path");
+            } else {
+                auto appDataPath = strings::toString(appdataRoaming);
+                auto eacFolder = appDataPath + "\\EasyAntiCheat";
+                auto gmeFolder = appDataPath + "\\GMEGLOBAL";
+                if (directory_delete(eacFolder.c_str())) {
+                    print("[+] Deleted: " + eacFolder);
+                } else {
+                    print("[-] Failed to delete: " + eacFolder);
+                }
+                if (directory_delete(gmeFolder.c_str())) {
+                    print("[+] Deleted: " + gmeFolder);
+                } else {
+                    print("[-] Failed to delete: " + gmeFolder);
+                }
+            }
+            wchar_t *appdataLocal;
+            if (SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_CREATE, nullptr, &appdataLocal) != S_OK) {
+                print("[-] Failed to found path");
+            } else {
+                auto appDataPath = strings::toString(appdataLocal);
+                auto solarFolder = appDataPath + "\\Solarland";
+                if (directory_delete(solarFolder.c_str())) {
+                    print("[+] Deleted: " + solarFolder);
+                } else {
+                    print("[-] Failed to delete: " + solarFolder);
+                }
+            }
         }
     } else {
         print("[-] Driver not found!");

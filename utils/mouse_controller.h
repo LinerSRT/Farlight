@@ -12,6 +12,8 @@ namespace input {
 
     BOOLEAN WINAPI moveMouse(int x, int y);
 
+    BOOLEAN WINAPI holdKey(UINT Key);
+
     BOOLEAN WINAPI moveMouseDxDy(float x, float y);
 
     UINT WINAPI getKeyState(UINT Key);

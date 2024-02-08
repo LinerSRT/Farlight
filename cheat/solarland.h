@@ -103,6 +103,10 @@ struct Character {
         }
     }
 
+    static void showCursor(GameEntity entity, bool show){
+        write(entity.controller + 0x0458, show);
+    }
+
     static float getHealth(GameEntity entity) {
         switch (entity.entityType) {
             case CHARACTER:

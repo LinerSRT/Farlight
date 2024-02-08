@@ -126,7 +126,6 @@ namespace Icons {
 }
 
 Farlight farlight = Farlight();
-int selectedTab = 0;
 
 namespace Overlay {
     WNDCLASSEX className;
@@ -135,6 +134,7 @@ namespace Overlay {
     int width = 600;
     int height = 500;
     bool show = false;
+    bool isInactive = false;
     ImFont *DroidSans, *DefaultFont, *Icons;
 }
 
@@ -157,16 +157,10 @@ void render();
 
 void renderMenu();
 
-void inputHandle() {
-    for (bool &i: ImGui::GetIO().MouseDown) i = false;
-    int button = -1;
-    if (GetAsyncKeyState(VK_LBUTTON)) button = 0;
-    if (button != -1) ImGui::GetIO().MouseDown[button] = true;
-}
 
 
 void renderFrame() {
-    if (GetAsyncKeyState(VK_INSERT) & 1) {
+    if (input::getAsyncKeyState(VK_INSERT) & 1) {
         Overlay::show = !Overlay::show;
     }
     ImGui_ImplDX9_NewFrame();
@@ -175,11 +169,13 @@ void renderFrame() {
     render();
     ImGui::GetIO().MouseDrawCursor = Overlay::show;
     if (Overlay::show) {
-        inputHandle();
-        ImGui::SetNextWindowPos(ImVec2((float) farlight.width / 2 - (float) Overlay::width / 2, (float) farlight.height / 2 - (float) Overlay::height / 2));
+        //ImGui::SetNextWindowPos(ImVec2((float) farlight.width / 2 - (float) Overlay::width / 2, (float) farlight.height / 2 - (float) Overlay::height / 2));
         ImGui::SetNextWindowSize(ImVec2((float) Overlay::width, (float) Overlay::height));
         ImGui::PushFont(Overlay::DefaultFont);
-        ImGui::Begin("Farlight84 Tool", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_None;
+        windowFlags |= ImGuiWindowFlags_NoResize;
+        windowFlags |= ImGuiWindowFlags_NoCollapse;
+        ImGui::Begin("Farlight84 Tool", nullptr, windowFlags);
         renderMenu();
         ImGui::PopFont();
         ImGui::End();
@@ -230,7 +226,7 @@ void overlayLoop() {
         GetCursorPos(&cursorPosition);
         io.MousePos.x = (float) cursorPosition.x - (float) point.x;
         io.MousePos.y = (float) cursorPosition.y - (float) point.y;
-        if (GetAsyncKeyState(0x1)) {
+        if (input::getAsyncKeyState(0x1)) {
             io.MouseDown[0] = true;
             io.MouseClicked[0] = true;
             io.MouseClickedPos[0].x = io.MousePos.x;
@@ -245,7 +241,7 @@ void overlayLoop() {
             farlight.height = rect.bottom;
             D3D::parameters.BackBufferWidth = farlight.width;
             D3D::parameters.BackBufferHeight = farlight.height;
-            SetWindowPos(Overlay::window, (HWND) 0, point.x, point.y, farlight.width, farlight.height, SWP_NOREDRAW);
+            SetWindowPos(Overlay::window, (HWND) nullptr, point.x, point.y, farlight.width, farlight.height, SWP_NOREDRAW);
             D3D::device->Reset(&D3D::parameters);
         }
         renderFrame();
@@ -304,8 +300,6 @@ bool directInit() {
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 LRESULT CALLBACK WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam) {
-    if (ImGui_ImplWin32_WndProcHandler(hWnd, Message, wParam, lParam))
-        return true;
     switch (Message) {
         case WM_DESTROY:
             if (D3D::device != nullptr) {
@@ -317,6 +311,7 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam) 
             }
             PostQuitMessage(0);
             exit(4);
+            return 0;
         case WM_SIZE:
             if (D3D::device != nullptr && wParam != SIZE_MINIMIZED) {
                 ImGui_ImplDX9_InvalidateDeviceObjects();
@@ -329,12 +324,19 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam) 
                 }
                 ImGui_ImplDX9_CreateDeviceObjects();
             }
-            break;
+            return 0;
         default:
-            return
-                    DefWindowProc(hWnd, Message, wParam, lParam);
+            if(Overlay::show)
+                ImGui_ImplWin32_WndProcHandler(hWnd, Message, wParam, lParam);
+            if(Overlay::show && !Overlay::isInactive){
+                DefWindowProc(hWnd, WM_ACTIVATE, WA_INACTIVE, 0);
+                Overlay::isInactive = true;
+            }else if(!Overlay::show && Overlay::isInactive){
+                DefWindowProc(hWnd, WM_ACTIVATE, WA_ACTIVE, 0);
+                Overlay::isInactive = false;
+            }
+            return Overlay::show ? 1 : DefWindowProc(hWnd, Message, wParam, lParam);
     }
-    return 0;
 }
 
 
