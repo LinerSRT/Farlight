@@ -3,13 +3,13 @@
 #define STEAM
 namespace offsets {
 #ifdef STEAM
-    DWORD gWorld = 0x7023068;
-    DWORD gNames = 0x6EA2840;
-    DWORD gObject = 0x6ED2790;
+    DWORD gWorld = 0x715DD68;
+    DWORD gNames = 0x6FED200;
+    DWORD gObject = 0x701D150;
 #elifdef STANDALONE
-    DWORD gWorld = 0x70220B8; // Old: 0x7033488
-    DWORD gNames = 0x6EA1880; // Old: 0x6EBB780
-    DWORD gObject = 0x6ED17E0; // Old: 0x6ED40E0
+    DWORD gWorld = 0x715DD68; // Old: 0x7033488
+    DWORD gNames = 0x6FED200; // Old: 0x6EBB780
+    DWORD gObject = 0x701D150; // Old: 0x6ED40E0
 #endif
 
 
